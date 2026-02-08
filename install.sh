@@ -25,7 +25,7 @@ fi
 # 2. brew bundle
 # ---------------------------------------------------------------------------
 info "Running brew bundle"
-brew bundle --file="$DOTFILES/Brewfile" --no-lock
+brew bundle --file="$DOTFILES/Brewfile"
 ok "Packages installed"
 
 # ---------------------------------------------------------------------------
@@ -93,16 +93,18 @@ $(cat "$src")
 $marker_end"
 
     if grep -q "$marker_begin" "$dest" 2>/dev/null; then
-        # Replace existing block
-        local tmp
+        # Replace existing block — write new content to temp, then swap
+        local tmp block_file
         tmp="$(mktemp)"
-        awk -v begin="$marker_begin" -v end="$marker_end" -v block="$block" '
-            $0 == begin { skip=1; if (!printed) { print block; printed=1 } next }
+        block_file="$(mktemp)"
+        printf '%s\n' "$block" > "$block_file"
+        awk -v begin="$marker_begin" -v end="$marker_end" -v bfile="$block_file" '
+            $0 == begin { skip=1; while ((getline line < bfile) > 0) print line; close(bfile); next }
             $0 == end   { skip=0; next }
             !skip       { print }
         ' "$dest" > "$tmp"
         sudo cp "$tmp" "$dest"
-        rm "$tmp"
+        rm "$tmp" "$block_file"
         ok "$dest (block replaced)"
     else
         # Append block
