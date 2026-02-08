@@ -1,0 +1,22 @@
+theme = TokyoNight Storm
+font-family = JetBrainsMono Nerd Font Mono
+font-size = 14
+
+window-padding-x = 10
+window-padding-y = 10
+
+background-opacity = 1
+
+cursor-style = block
+cursor-style-blink = false
+
+copy-on-select = clipboard
+
+minimum-contrast = 1
+
+macos-titlebar-style = tabs
+window-theme = auto
+
+split-divider-color = #7aa2f7
+unfocused-split-fill = #1a1b26
+unfocused-split-opacity = 0.85

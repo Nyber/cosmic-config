@@ -1,0 +1,205 @@
+#!/bin/bash
+set -euo pipefail
+
+DOTFILES="$HOME/.dotfiles"
+BACKUP_DIR="$HOME/.dotfiles-backup"
+
+info()  { printf '\033[1;34m==> %s\033[0m\n' "$1"; }
+ok()    { printf '\033[1;32m    ✓ %s\033[0m\n' "$1"; }
+skip()  { printf '\033[1;33m    ⊘ %s (skipped)\033[0m\n' "$1"; }
+
+# ---------------------------------------------------------------------------
+# 1. Homebrew
+# ---------------------------------------------------------------------------
+info "Checking Homebrew"
+if command -v brew &>/dev/null; then
+    ok "Homebrew already installed"
+else
+    info "Installing Homebrew"
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+    ok "Homebrew installed"
+fi
+
+# ---------------------------------------------------------------------------
+# 2. brew bundle
+# ---------------------------------------------------------------------------
+info "Running brew bundle"
+brew bundle --file="$DOTFILES/Brewfile" --no-lock
+ok "Packages installed"
+
+# ---------------------------------------------------------------------------
+# 3. Start JankyBorders service
+# ---------------------------------------------------------------------------
+info "Starting JankyBorders service"
+if brew services list | grep -q 'borders.*started'; then
+    ok "JankyBorders already running"
+else
+    brew services start felixkratz/formulae/borders
+    ok "JankyBorders started"
+fi
+
+# ---------------------------------------------------------------------------
+# 4. Symlinks (home/ → ~/)
+# ---------------------------------------------------------------------------
+info "Creating symlinks"
+
+link_file() {
+    local src="$1"   # absolute path in dotfiles
+    local dest="$2"  # absolute path in ~/
+
+    if [[ -L "$dest" ]]; then
+        local current
+        current="$(readlink "$dest")"
+        if [[ "$current" == "$src" ]]; then
+            skip "$dest"
+            return
+        fi
+    fi
+
+    # Back up existing regular file
+    if [[ -e "$dest" && ! -L "$dest" ]]; then
+        mkdir -p "$BACKUP_DIR/$(dirname "${dest#$HOME/}")"
+        mv "$dest" "$BACKUP_DIR/${dest#$HOME/}"
+        info "Backed up $dest → $BACKUP_DIR/${dest#$HOME/}"
+    fi
+
+    mkdir -p "$(dirname "$dest")"
+    ln -sfn "$src" "$dest"
+    ok "$dest → $src"
+}
+
+# Walk home/ and symlink each file
+while IFS= read -r -d '' file; do
+    rel="${file#$DOTFILES/home/}"
+    link_file "$file" "$HOME/$rel"
+done < <(find "$DOTFILES/home" -type f -print0)
+
+# ---------------------------------------------------------------------------
+# 5. System configs (sudo)
+# ---------------------------------------------------------------------------
+info "Installing system configs (sudo required)"
+
+# Helper: install a block between markers into a system file
+install_block() {
+    local src="$1"    # source append file
+    local dest="$2"   # target system file
+    local marker_begin="# BEGIN dotfiles"
+    local marker_end="# END dotfiles"
+
+    local block
+    block="$marker_begin
+$(cat "$src")
+$marker_end"
+
+    if grep -q "$marker_begin" "$dest" 2>/dev/null; then
+        # Replace existing block
+        local tmp
+        tmp="$(mktemp)"
+        awk -v begin="$marker_begin" -v end="$marker_end" -v block="$block" '
+            $0 == begin { skip=1; if (!printed) { print block; printed=1 } next }
+            $0 == end   { skip=0; next }
+            !skip       { print }
+        ' "$dest" > "$tmp"
+        sudo cp "$tmp" "$dest"
+        rm "$tmp"
+        ok "$dest (block replaced)"
+    else
+        # Append block
+        printf '\n%s\n' "$block" | sudo tee -a "$dest" >/dev/null
+        ok "$dest (block appended)"
+    fi
+}
+
+# /etc/starship.toml — full file copy
+sudo cp "$DOTFILES/etc/starship.toml" /etc/starship.toml
+ok "/etc/starship.toml"
+
+# /etc/eza/theme.yml — full file copy
+sudo mkdir -p /etc/eza
+sudo cp "$DOTFILES/etc/eza/theme.yml" /etc/eza/theme.yml
+ok "/etc/eza/theme.yml"
+
+# /etc/zshrc — append block
+install_block "$DOTFILES/etc/zshrc.append" /etc/zshrc
+
+# /etc/zprofile — append block
+install_block "$DOTFILES/etc/zprofile.append" /etc/zprofile
+
+# ---------------------------------------------------------------------------
+# 6. Yazi Tokyo Night flavor
+# ---------------------------------------------------------------------------
+info "Yazi Tokyo Night flavor"
+YAZI_FLAVOR_DIR="$HOME/.config/yazi/flavors/tokyo-night.yazi"
+if [[ -d "$YAZI_FLAVOR_DIR" ]]; then
+    ok "Already cloned"
+else
+    git clone https://github.com/BennyOe/tokyo-night.yazi.git "$YAZI_FLAVOR_DIR"
+    ok "Cloned tokyo-night.yazi"
+fi
+
+# ---------------------------------------------------------------------------
+# 7. Wallpaper file
+# ---------------------------------------------------------------------------
+info "Wallpaper"
+if [[ -f "$HOME/Pictures/windows-xp-bliss.jpg" ]]; then
+    ok "Already in place"
+else
+    mkdir -p "$HOME/Pictures"
+    cp "$DOTFILES/wallpaper/windows-xp-bliss.jpg" "$HOME/Pictures/windows-xp-bliss.jpg"
+    ok "Copied to ~/Pictures/"
+fi
+
+# ---------------------------------------------------------------------------
+# 8. macOS settings
+# ---------------------------------------------------------------------------
+info "macOS settings"
+
+# Root shell → zsh
+if [[ "$(dscl . -read /Users/root UserShell 2>/dev/null | awk '{print $2}')" == "/bin/zsh" ]]; then
+    ok "Root shell already zsh"
+else
+    sudo chsh -s /bin/zsh root
+    ok "Root shell set to zsh"
+fi
+
+# Passwordless sudo
+SUDOERS_FILE="/etc/sudoers.d/$(whoami)"
+if [[ -f "$SUDOERS_FILE" ]]; then
+    ok "Passwordless sudo already configured"
+else
+    echo "$(whoami) ALL=(ALL) NOPASSWD: ALL" | sudo tee "$SUDOERS_FILE" >/dev/null
+    sudo chmod 0440 "$SUDOERS_FILE"
+    ok "Passwordless sudo configured"
+fi
+
+# Power management
+sudo pmset -a displaysleep 15
+ok "Display sleep set to 15 min"
+
+# Menu bar always visible
+defaults write NSGlobalDomain _HIHideMenuBar -bool false
+ok "Menu bar always visible"
+
+# Don't confirm unsaved changes on close
+defaults write NSGlobalDomain NSCloseAlwaysConfirmsChanges -bool false
+ok "Close without confirming changes"
+
+# Don't restore windows on relaunch
+defaults write NSGlobalDomain NSQuitAlwaysKeepsWindows -bool false
+ok "Don't restore windows on relaunch"
+
+# Desktop wallpaper
+osascript -e 'tell application "System Events" to tell every desktop to set picture to "'"$HOME"'/Pictures/windows-xp-bliss.jpg"'
+ok "Desktop wallpaper set"
+
+# Citrix .ica file association
+if command -v duti &>/dev/null; then
+    duti -s com.citrix.receiver.icaviewer.mac .ica all
+    ok ".ica files → Citrix Workspace"
+else
+    skip "duti not found, skipping .ica association"
+fi
+
+# ---------------------------------------------------------------------------
+info "Done! You may need to log out/restart for some changes to take effect."

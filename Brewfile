@@ -1,0 +1,17 @@
+tap "nikitabobko/tap"
+tap "FelixKratz/formulae"
+
+brew "starship"
+brew "eza"
+brew "fzf"
+brew "zsh-autosuggestions"
+brew "zsh-syntax-highlighting"
+brew "yazi"
+brew "duti"
+brew "borders"
+
+cask "nikitabobko/tap/aerospace"
+cask "ghostty"
+cask "obsidian"
+cask "citrix-workspace"
+cask "font-jetbrains-mono-nerd-font"

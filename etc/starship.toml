@@ -1,0 +1,115 @@
+"$schema" = 'https://starship.rs/config-schema.json'
+
+format = """$os\
+$directory\
+$git_branch\
+$git_status\
+$character"""
+
+palette = 'tokyo_night'
+
+[os]
+disabled = false
+format = '[$symbol](fg:comment) '
+
+[os.symbols]
+Macos = ""
+
+[directory]
+style = "fg:foreground"
+format = '[$path]($style) '
+truncation_length = 3
+truncation_symbol = "…/"
+
+[git_branch]
+symbol = ""
+style = "fg:comment"
+format = '[$symbol $branch]($style) '
+
+[git_status]
+style = "fg:orange"
+format = '[$all_status$ahead_behind]($style)'
+
+[fill]
+symbol = ' '
+
+[nodejs]
+symbol = ""
+style = "fg:green"
+format = 'via [$symbol $version]($style) '
+
+[c]
+symbol = ""
+style = "fg:blue"
+format = 'via [$symbol $version]($style) '
+
+[rust]
+symbol = ""
+style = "fg:orange"
+format = 'via [$symbol $version]($style) '
+
+[golang]
+symbol = ""
+style = "fg:cyan"
+format = 'via [$symbol $version]($style) '
+
+[php]
+symbol = ""
+style = "fg:purple"
+format = 'via [$symbol $version]($style) '
+
+[java]
+symbol = ""
+style = "fg:red"
+format = 'via [$symbol $version]($style) '
+
+[kotlin]
+symbol = ""
+style = "fg:purple"
+format = 'via [$symbol $version]($style) '
+
+[haskell]
+symbol = ""
+style = "fg:purple"
+format = 'via [$symbol $version]($style) '
+
+[python]
+symbol = ""
+style = "fg:yellow"
+format = 'via [$symbol $version(\($virtualenv\))]($style) '
+
+[conda]
+symbol = "󱔎"
+style = "fg:green"
+format = 'via [$symbol $environment]($style) '
+ignore_base = false
+
+[docker_context]
+symbol = ""
+style = "fg:cyan"
+format = 'via [$symbol $context]($style) '
+
+[cmd_duration]
+show_milliseconds = false
+format = '[took $duration](fg:comment) '
+min_time = 2000
+
+[character]
+success_symbol = '[❯](fg:green)'
+error_symbol = '[❯](fg:red)'
+vimcmd_symbol = '[❮](bold fg:green)'
+vimcmd_replace_one_symbol = '[❮](bold fg:purple)'
+vimcmd_replace_symbol = '[❮](bold fg:purple)'
+vimcmd_visual_symbol = '[❮](bold fg:yellow)'
+
+[palettes.tokyo_night]
+foreground = "#c0caf5"
+comment = "#565f89"
+red = "#f7768e"
+orange = "#ff9e64"
+yellow = "#e0af68"
+green = "#9ece6a"
+cyan = "#2ac3de"
+blue = "#7aa2f7"
+purple = "#bb9af7"
+magenta = "#ff007c"
