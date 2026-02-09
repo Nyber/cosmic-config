@@ -15,7 +15,7 @@ on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
 # Keep workspaces 1-5 alive
 persistent-workspaces = ["1", "2", "3", "4", "5"]
 
-exec-on-workspace-change = ['/bin/bash', '-c', 'sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE=$AEROSPACE_FOCUSED_WORKSPACE']
+exec-on-workspace-change = ['/Users/wyoung5/.config/sketchybar/plugins/aerospace_batch.sh']
 
 [key-mapping]
     preset = 'qwerty'
@@ -24,10 +24,10 @@ exec-on-workspace-change = ['/bin/bash', '-c', 'sketchybar --trigger aerospace_w
 [gaps]
     inner.horizontal = 5
     inner.vertical =   5
-    outer.left =       0
-    outer.bottom =     0
-    outer.top =        0
-    outer.right =      0
+    outer.left =       2
+    outer.bottom =     2
+    outer.top =        2
+    outer.right =      2
 
 [mode.main.binding]
 
@@ -48,7 +48,7 @@ exec-on-workspace-change = ['/bin/bash', '-c', 'sketchybar --trigger aerospace_w
     ctrl-comma = 'layout accordion horizontal vertical'
     ctrl-f     = 'fullscreen'
     ctrl-m     = 'macos-native-minimize'
-    ctrl-q     = 'close'
+    ctrl-q     = ['close', 'exec-and-forget /Users/wyoung5/.config/aerospace/close-window.sh']
 
     # --- Resize ---
     ctrl-equal = 'resize smart +50'

@@ -43,19 +43,19 @@ on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
 # Keep workspaces 1-5 alive
 persistent-workspaces = ["1", "2", "3", "4", "5"]
 
-exec-on-workspace-change = ['/bin/bash', '-c', 'sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE=$AEROSPACE_FOCUSED_WORKSPACE']
+exec-on-workspace-change = ['/Users/wyoung5/.config/sketchybar/plugins/aerospace_batch.sh']
 
 [key-mapping]
     preset = 'qwerty'
 
-# 5px gaps between windows only, no edge padding
+# 5px gaps between windows, 2px edge padding for border visibility
 [gaps]
     inner.horizontal = 5
     inner.vertical =   5
-    outer.left =       0
-    outer.bottom =     0
-    outer.top =        0
-    outer.right =      0
+    outer.left =       2
+    outer.bottom =     2
+    outer.top =        2
+    outer.right =      2
 
 [mode.main.binding]
 
@@ -76,7 +76,7 @@ exec-on-workspace-change = ['/bin/bash', '-c', 'sketchybar --trigger aerospace_w
     ctrl-comma = 'layout accordion horizontal vertical'
     ctrl-f     = 'fullscreen'
     ctrl-m     = 'macos-native-minimize'
-    ctrl-q     = 'close'
+    ctrl-q     = ['close', 'exec-and-forget /Users/wyoung5/.config/aerospace/close-window.sh']
 
     # --- Resize ---
     ctrl-equal = 'resize smart +50'
@@ -137,8 +137,9 @@ Create `~/.config/aerospace/` and save these scripts. `chmod +x` each one.
 # Always open a new Safari window on the current workspace
 if pgrep -x Safari > /dev/null; then
     osascript -e 'tell application "Safari" to make new document'
+else
+    open -a Safari
 fi
-osascript -e 'tell application "Safari" to activate'
 ```
 
 #### launch-terminal.sh
@@ -146,7 +147,6 @@ osascript -e 'tell application "Safari" to activate'
 #!/bin/bash
 # Always open a new Ghostty window on the current workspace
 if pgrep -x ghostty > /dev/null; then
-    osascript -e 'tell application "Ghostty" to activate'
     osascript -e 'tell application "System Events" to tell process "Ghostty" to click menu item "New Window" of menu "File" of menu bar 1'
 else
     open -a Ghostty
@@ -158,7 +158,6 @@ fi
 #!/bin/bash
 # Always open a new Obsidian window on the current workspace
 if pgrep -x Obsidian > /dev/null; then
-    osascript -e 'tell application "Obsidian" to activate'
     osascript -e 'tell application "System Events" to tell process "Obsidian" to click menu item "New window" of menu "File" of menu bar 1'
 else
     open -a Obsidian
@@ -176,7 +175,21 @@ sleep 0.1
 if [ -z "$(aerospace list-windows --workspace focused)" ]; then
   aerospace workspace "$TARGET"
 fi
-sketchybar --trigger aerospace_workspace_change
+AEROSPACE_FOCUSED_WORKSPACE="$(aerospace list-workspaces --focused)" \
+  /Users/wyoung5/.config/sketchybar/plugins/aerospace_batch.sh
+```
+
+#### close-window.sh
+```bash
+#!/bin/sh
+# After closing a window, if the workspace is now empty, go back to the previous workspace.
+# Then refresh SketchyBar.
+sleep 0.1
+if [ -z "$(aerospace list-windows --workspace focused)" ]; then
+  aerospace workspace-back-and-forth
+fi
+AEROSPACE_FOCUSED_WORKSPACE="$(aerospace list-workspaces --focused)" \
+  /Users/wyoung5/.config/sketchybar/plugins/aerospace_batch.sh
 ```
 
 ### Key Shortcuts
@@ -255,7 +268,7 @@ options=(
 	style=round
 	width=7.0
 	hidpi=on
-	active_color=0xff7aa2f7
+	active_color=0xffc0caf5
 	inactive_color=0x00000000
 )
 
@@ -263,14 +276,14 @@ borders "${options[@]}"
 ```
 
 ### Notes
-- Color `#7aa2f7` is Tokyo Night's blue accent.
+- Color `#c0caf5` is Tokyo Night's foreground (muted lavender-white) — visible against dark backgrounds.
 - Inactive windows have no border (fully transparent).
 - Changes can be applied live without restart: `borders width=6.0 active_color=0xffFF6600`
 - Starts at login via `brew services`.
 
 ## SketchyBar (Status Bar)
 
-Custom status bar that replaces the macOS menu bar. Shows AeroSpace workspaces, active app, clock, volume, battery, and F5 VPN status with toggle.
+Custom status bar that replaces the macOS menu bar. Shows AeroSpace workspaces, active app, power menu, clock, volume, battery, and F5 VPN status with toggle.
 
 ### Install
 ```bash
@@ -309,7 +322,7 @@ sketchybar --bar position=top \
 default=(
   padding_left=5
   padding_right=5
-  icon.font="JetBrainsMono Nerd Font Mono:Bold:14.0"
+  icon.font="JetBrainsMono Nerd Font Mono:Bold:20.0"
   label.font="JetBrainsMono Nerd Font Mono:Regular:13.0"
   icon.color=$ICON_COLOR
   label.color=$LABEL_COLOR
@@ -321,12 +334,11 @@ default=(
 sketchybar --default "${default[@]}"
 
 ##### AeroSpace Workspace Indicators #####
-sketchybar --add event aerospace_workspace_change
-
 for sid in 1 2 3 4 5; do
   sketchybar --add item workspace."$sid" left \
              --set workspace."$sid" \
                    icon="$sid" \
+                   icon.font="JetBrainsMono Nerd Font Mono:Bold:14.0" \
                    icon.color=$DIM \
                    icon.highlight_color=$ICON_COLOR \
                    icon.padding_left=8 \
@@ -337,8 +349,7 @@ for sid in 1 2 3 4 5; do
                    background.drawing=off \
                    label.drawing=off \
                    script="$PLUGIN_DIR/aerospace.sh" \
-                   click_script="aerospace workspace $sid" \
-             --subscribe workspace."$sid" aerospace_workspace_change
+                   click_script="aerospace workspace $sid"
 done
 
 ##### Front App #####
@@ -349,7 +360,12 @@ sketchybar --add item front_app left \
            --subscribe front_app front_app_switched
 
 ##### Right Items #####
-sketchybar --add item clock right \
+sketchybar --add item power right \
+           --set power icon="⏻" \
+                       icon.color=$HIGHLIGHT \
+                       label.drawing=off \
+                       click_script="$PLUGIN_DIR/power.sh" \
+           --add item clock right \
            --set clock update_freq=10 \
                        icon= \
                        icon.color=$HIGHLIGHT \
@@ -363,6 +379,11 @@ sketchybar --add item clock right \
                          icon.color=$HIGHLIGHT \
                          script="$PLUGIN_DIR/battery.sh" \
            --subscribe battery system_woke power_source_change \
+           --add item screenshot right \
+           --set screenshot icon="󰄀" \
+                            icon.color=$HIGHLIGHT \
+                            label.drawing=off \
+                            click_script="open -a Screenshot" \
            --add item vpn right \
            --set vpn update_freq=5 \
                      icon="󰌿" \
@@ -379,12 +400,37 @@ sketchybar --update
 
 Create `~/.config/sketchybar/plugins/` and save these scripts. `chmod +x` each one.
 
-#### aerospace.sh
+#### aerospace_batch.sh
+```bash
+#!/bin/bash
+
+# Batch-update all workspace indicators in a single sketchybar call.
+# Called directly by AeroSpace's exec-on-workspace-change.
+
+FOCUSED="${AEROSPACE_FOCUSED_WORKSPACE:-$(aerospace list-workspaces --focused)}"
+NON_EMPTY="$(aerospace list-workspaces --monitor all --empty no)"
+
+args=()
+for sid in 1 2 3 4 5; do
+  if [ "$FOCUSED" = "$sid" ]; then
+    # Always show the focused workspace, even if empty
+    args+=(--set "workspace.$sid" drawing=on icon.highlight=on background.drawing=on)
+  elif echo "$NON_EMPTY" | grep -qx "$sid"; then
+    args+=(--set "workspace.$sid" drawing=on icon.highlight=off background.drawing=off)
+  else
+    args+=(--set "workspace.$sid" drawing=off)
+  fi
+done
+
+sketchybar "${args[@]}"
+```
+
+#### aerospace.sh (initial load only)
 ```bash
 #!/bin/sh
 
 # Show only in-use workspaces, highlight the focused one.
-# Each workspace item runs this script independently via the event subscription.
+# Used for initial load via sketchybar --update. No longer subscribed to events.
 
 SID="${NAME##*.}"
 FOCUSED="${FOCUSED_WORKSPACE:-$(aerospace list-workspaces --focused)}"
@@ -482,6 +528,104 @@ fi
 sketchybar --set "$NAME" icon="$ICON" label="${PERCENTAGE}%"
 ```
 
+#### power.sh
+```bash
+#!/bin/bash
+
+HIGHLIGHT=0xff7aa2f7
+ICON_COLOR=0xffc0caf5
+
+# Highlight the power icon while the menu is open
+sketchybar --set power icon.color=$ICON_COLOR \
+                       background.drawing=on \
+                       background.color=$HIGHLIGHT \
+                       background.corner_radius=5 \
+                       background.height=22
+
+# Launch native power menu window
+rm -f /tmp/.sketchybar_power_choice
+"$CONFIG_DIR/plugins/power-menu"
+choice=$(cat /tmp/.sketchybar_power_choice 2>/dev/null)
+rm -f /tmp/.sketchybar_power_choice
+
+# Revert highlight
+sketchybar --set power icon.color=$HIGHLIGHT \
+                       background.drawing=off
+
+case "$choice" in
+  "Shut Down")   osascript -e 'tell application "System Events" to shut down' ;;
+  "Restart")     osascript -e 'tell application "System Events" to restart' ;;
+  "Sleep")       pmset sleepnow ;;
+  "Lock Screen") osascript -e 'tell application "System Events" to key code 12 using {control down, command down}' ;;
+  "Log Out")     osascript -e 'tell application "System Events" to log out' ;;
+esac
+```
+
+#### power_menu.swift
+The native Swift GUI for the power menu. Build with:
+```bash
+swiftc -o power-menu power_menu.swift
+```
+
+```swift
+import AppKit
+
+class PowerMenu: NSObject, NSApplicationDelegate, NSWindowDelegate {
+    var window: NSWindow!
+    let actions = ["Lock Screen", "Sleep", "Restart", "Shut Down", "Log Out"]
+
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        let width: CGFloat = 180
+        let buttonHeight: CGFloat = 28
+        let padding: CGFloat = 12
+        let spacing: CGFloat = 6
+        let height = padding * 2 + buttonHeight * CGFloat(actions.count) + spacing * CGFloat(actions.count - 1)
+
+        window = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: width, height: height),
+            styleMask: [.titled, .closable],
+            backing: .buffered,
+            defer: false
+        )
+        window.title = "Power"
+        window.center()
+        window.delegate = self
+        window.isReleasedWhenClosed = false
+
+        let contentView = NSView(frame: NSRect(x: 0, y: 0, width: width, height: height))
+
+        for (i, action) in actions.enumerated() {
+            let y = height - padding - buttonHeight - CGFloat(i) * (buttonHeight + spacing)
+            let button = NSButton(frame: NSRect(x: padding, y: y, width: width - padding * 2, height: buttonHeight))
+            button.title = action
+            button.bezelStyle = .rounded
+            button.target = self
+            button.action = #selector(buttonClicked(_:))
+            contentView.addSubview(button)
+        }
+
+        window.contentView = contentView
+        window.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
+    @objc func buttonClicked(_ sender: NSButton) {
+        try? sender.title.write(toFile: "/tmp/.sketchybar_power_choice", atomically: true, encoding: .utf8)
+        NSApp.terminate(nil)
+    }
+
+    func windowWillClose(_ notification: Notification) {
+        NSApp.terminate(nil)
+    }
+}
+
+let app = NSApplication.shared
+app.setActivationPolicy(.accessory)
+let delegate = PowerMenu()
+app.delegate = delegate
+app.run()
+```
+
 #### vpn.sh
 ```bash
 #!/bin/bash
@@ -537,6 +681,8 @@ fi
 ### Notes
 - Tokyo Night Storm theme throughout — matches Ghostty, Starship, JankyBorders.
 - `topmost=on` renders SketchyBar above the macOS menu bar (see macOS Settings section for auto-hide fallback).
+- Power item (⏻) opens a picker dialog with Shut Down, Restart, Sleep, Lock Screen, and Log Out.
+- Screenshot item opens the macOS Screenshot toolbar (`Cmd+Shift+5`) on click.
 - VPN item polls every 5 seconds for the `svpn` process (F5 BIG-IP Edge Client). Clicking toggles connect/disconnect.
 - Workspace indicators only show non-empty workspaces; the focused one gets a highlighted background.
 - Starts at login via `brew services`.
@@ -929,6 +1075,25 @@ killall Dock
 ```bash
 defaults write NSGlobalDomain NSCloseAlwaysConfirmsChanges -bool false
 defaults write NSGlobalDomain NSQuitAlwaysKeepsWindows -bool false
+```
+
+### Login screen
+Show name/password fields instead of user list (hides user accounts):
+```bash
+sudo defaults write /Library/Preferences/com.apple.loginwindow SHOWFULLNAME -bool true
+```
+
+Profile picture (penguin for both accounts):
+```bash
+# Convert to JPEG (dsimport needs JPEG, not HEIC)
+sips -s format jpeg "/Library/User Pictures/Animals/Penguin.heic" --out /tmp/penguin.jpg
+
+# Embed image data via dsimport (dscl Picture path alone doesn't work on modern macOS)
+printf '0x0A 0x5C 0x3A 0x2C dsRecTypeStandard:Users 2 dsAttrTypeStandard:RecordName externalbinary:dsAttrTypeStandard:JPEGPhoto\nwyoung5:/tmp/penguin.jpg\n' > /tmp/wyoung5_pic.dsimport
+sudo dsimport /tmp/wyoung5_pic.dsimport /Local/Default M
+
+printf '0x0A 0x5C 0x3A 0x2C dsRecTypeStandard:Users 2 dsAttrTypeStandard:RecordName externalbinary:dsAttrTypeStandard:JPEGPhoto\nwyoung:/tmp/penguin.jpg\n' > /tmp/wyoung_pic.dsimport
+sudo dsimport /tmp/wyoung_pic.dsimport /Local/Default M
 ```
 
 ### macOS menu bar (hidden — replaced by SketchyBar)

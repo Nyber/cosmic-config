@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Show only in-use workspaces, highlight the focused one.
-# Each workspace item runs this script independently via the event subscription.
+# Used for initial load via sketchybar --update. Not subscribed to events.
 
 SID="${NAME##*.}"
 FOCUSED="${FOCUSED_WORKSPACE:-$(aerospace list-workspaces --focused)}"
