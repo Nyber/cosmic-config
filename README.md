@@ -5,9 +5,11 @@ macOS setup — AeroSpace, Ghostty, JankyBorders, Yazi, zsh, Starship, eza.
 ## Install
 
 ```bash
-git clone https://github.com/Nyber/dotfiles.git ~/.dotfiles
-~/.dotfiles/install.sh
+git clone https://github.com/Nyber/dotfiles.git ~/dotfiles
+~/dotfiles/install.sh
 ```
+
+Clone anywhere you like — the install script detects its own location.
 
 ## What it does
 
@@ -25,7 +27,7 @@ The script is idempotent — safe to re-run.
 ## Layout
 
 ```
-~/.dotfiles/
+dotfiles/
 ├── install.sh              # Single install script
 ├── Brewfile                # Homebrew manifest
 ├── home/                   # Mirrors ~/ (symlinked)
