@@ -46,6 +46,14 @@ dotfiles/
     └── windows-xp-bliss.jpg
 ```
 
+## Key bindings
+
+| Shortcut | Action |
+|----------|--------|
+| `ctrl + q` | Close Ghostty surface (tab/split/window) |
+
+See `.aerospace.toml` for the full AeroSpace shortcut map (`ctrl` as base modifier).
+
 ## Theme
 
 Tokyo Night across everything — Ghostty, Starship, eza, JankyBorders, Yazi.
