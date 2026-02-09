@@ -7,6 +7,7 @@ brew "fzf"
 brew "zsh-autosuggestions"
 brew "zsh-syntax-highlighting"
 brew "yazi"
+brew "gh"
 brew "duti"
 brew "borders"
 
