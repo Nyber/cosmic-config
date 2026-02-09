@@ -818,6 +818,48 @@ By default, `.ica` files open the full Workspace app (self-service storefront UI
 duti -s com.citrix.receiver.icaviewer.mac .ica all
 ```
 
+## Git
+
+### Config
+Save to `~/.gitconfig`:
+```ini
+[user]
+	name = Nyber
+	email = null@null.com
+[init]
+	defaultBranch = main
+[pull]
+	rebase = true
+```
+
+## GitHub CLI
+
+### Install
+```bash
+brew install gh
+gh auth login
+```
+
+### Config
+Save to `~/.config/gh/config.yml`:
+```yaml
+version: 1
+git_protocol: https
+prompt: enabled
+prefer_editor_prompt: disabled
+aliases:
+    co: pr checkout
+color_labels: disabled
+spinner: enabled
+```
+
+## Claude Code
+
+### Install
+```bash
+brew install --cask claude-code
+```
+
 ## macOS Settings
 
 ### Passwordless sudo
@@ -845,6 +887,48 @@ defaults write com.apple.finder FXDefaultSearchScope -string "SCcf"
 killall Finder
 ```
 Shows hidden files, all extensions, path bar, status bar, list view by default, full POSIX path in title, folders sorted first, and searches the current folder instead of "This Mac".
+
+### Dark mode
+```bash
+defaults write NSGlobalDomain AppleInterfaceStyle -string "Dark"
+```
+
+### Always show scrollbars
+```bash
+defaults write NSGlobalDomain AppleShowScrollBars -string "Always"
+```
+
+### Disable double-click title bar to minimize
+```bash
+defaults write NSGlobalDomain AppleMiniaturizeOnDoubleClick -bool false
+```
+
+### Full keyboard access
+Tab moves focus to all UI controls, not just text fields and lists.
+```bash
+defaults write NSGlobalDomain AppleKeyboardUIMode -int 2
+```
+
+### Fast key repeat
+Faster than System Preferences allows.
+```bash
+defaults write com.apple.Accessibility KeyRepeatInterval -float 0.083333333
+defaults write com.apple.Accessibility KeyRepeatDelay -float 0.5
+defaults write com.apple.Accessibility KeyRepeatEnabled -bool true
+```
+
+### Dock
+Auto-hide, small icons, strip all persistent apps, hide recents, Quick Note hot corner (bottom-right).
+```bash
+defaults write com.apple.dock autohide -bool true
+defaults write com.apple.dock tilesize -int 43
+defaults write com.apple.dock show-recents -bool false
+defaults write com.apple.dock persistent-apps -array
+defaults write com.apple.dock persistent-others -array
+defaults write com.apple.dock wvous-br-corner -int 14
+defaults write com.apple.dock wvous-br-modifier -int 0
+killall Dock
+```
 
 ### Disable close/quit confirmations
 ```bash

@@ -1,0 +1,7 @@
+[user]
+	name = Nyber
+	email = null@null.com
+[init]
+	defaultBranch = main
+[pull]
+	rebase = true

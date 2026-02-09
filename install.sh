@@ -211,6 +211,39 @@ defaults write com.apple.finder FXDefaultSearchScope -string "SCcf"
 killall Finder 2>/dev/null || true
 ok "Finder: hidden files, extensions, path/status bar, list view, folders first"
 
+# Dark mode
+defaults write NSGlobalDomain AppleInterfaceStyle -string "Dark"
+ok "Dark mode"
+
+# Always show scrollbars
+defaults write NSGlobalDomain AppleShowScrollBars -string "Always"
+ok "Always show scrollbars"
+
+# Disable double-click title bar to minimize
+defaults write NSGlobalDomain AppleMiniaturizeOnDoubleClick -bool false
+ok "Disable double-click minimize"
+
+# Full keyboard access (Tab through all UI controls)
+defaults write NSGlobalDomain AppleKeyboardUIMode -int 2
+ok "Full keyboard access"
+
+# Fast key repeat (faster than System Preferences allows)
+defaults write com.apple.Accessibility KeyRepeatInterval -float 0.083333333
+defaults write com.apple.Accessibility KeyRepeatDelay -float 0.5
+defaults write com.apple.Accessibility KeyRepeatEnabled -bool true
+ok "Fast key repeat"
+
+# Dock
+defaults write com.apple.dock autohide -bool true
+defaults write com.apple.dock tilesize -int 43
+defaults write com.apple.dock show-recents -bool false
+defaults write com.apple.dock persistent-apps -array
+defaults write com.apple.dock persistent-others -array
+defaults write com.apple.dock wvous-br-corner -int 14
+defaults write com.apple.dock wvous-br-modifier -int 0
+killall Dock 2>/dev/null || true
+ok "Dock: autohide, small icons, stripped apps, Quick Note hot corner"
+
 # Desktop wallpaper
 osascript -e 'tell application "System Events" to tell every desktop to set picture to "'"$HOME"'/Pictures/windows-xp-bliss.jpg"'
 ok "Desktop wallpaper set"
