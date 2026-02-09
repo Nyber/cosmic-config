@@ -898,11 +898,6 @@ defaults write NSGlobalDomain AppleInterfaceStyle -string "Dark"
 defaults write NSGlobalDomain AppleShowScrollBars -string "Always"
 ```
 
-### Disable double-click title bar to minimize
-```bash
-defaults write NSGlobalDomain AppleMiniaturizeOnDoubleClick -bool false
-```
-
 ### Full keyboard access
 Tab moves focus to all UI controls, not just text fields and lists.
 ```bash

@@ -219,10 +219,6 @@ ok "Dark mode"
 defaults write NSGlobalDomain AppleShowScrollBars -string "Always"
 ok "Always show scrollbars"
 
-# Disable double-click title bar to minimize
-defaults write NSGlobalDomain AppleMiniaturizeOnDoubleClick -bool false
-ok "Disable double-click minimize"
-
 # Full keyboard access (Tab through all UI controls)
 defaults write NSGlobalDomain AppleKeyboardUIMode -int 2
 ok "Full keyboard access"
