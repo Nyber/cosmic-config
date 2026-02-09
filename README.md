@@ -55,6 +55,8 @@ dotfiles/
 
 See `.aerospace.toml` for the full AeroSpace shortcut map (`ctrl` as base modifier).
 
+After editing `.aerospace.toml`, reload with `ctrl + shift + ;` then `esc`, or run `aerospace reload-config`.
+
 ## Theme
 
 Tokyo Night across everything — Ghostty, Starship, eza, JankyBorders, Yazi.
