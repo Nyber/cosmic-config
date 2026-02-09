@@ -199,6 +199,18 @@ ok "Close without confirming changes"
 defaults write NSGlobalDomain NSQuitAlwaysKeepsWindows -bool false
 ok "Don't restore windows on relaunch"
 
+# Finder
+defaults write com.apple.finder AppleShowAllFiles -bool true
+defaults write NSGlobalDomain AppleShowAllExtensions -bool true
+defaults write com.apple.finder ShowPathbar -bool true
+defaults write com.apple.finder ShowStatusBar -bool true
+defaults write com.apple.finder FXPreferredViewStyle -string "Nlsv"
+defaults write com.apple.finder _FXShowPosixPathInTitle -bool true
+defaults write com.apple.finder _FXSortFoldersFirst -bool true
+defaults write com.apple.finder FXDefaultSearchScope -string "SCcf"
+killall Finder 2>/dev/null || true
+ok "Finder: hidden files, extensions, path/status bar, list view, folders first"
+
 # Desktop wallpaper
 osascript -e 'tell application "System Events" to tell every desktop to set picture to "'"$HOME"'/Pictures/windows-xp-bliss.jpg"'
 ok "Desktop wallpaper set"

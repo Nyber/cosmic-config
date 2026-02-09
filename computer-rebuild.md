@@ -832,6 +832,20 @@ Drop-in file at `/etc/sudoers.d/wyoung5` — survives macOS updates to the main 
 sudo pmset -a displaysleep 15
 ```
 
+### Finder
+```bash
+defaults write com.apple.finder AppleShowAllFiles -bool true
+defaults write NSGlobalDomain AppleShowAllExtensions -bool true
+defaults write com.apple.finder ShowPathbar -bool true
+defaults write com.apple.finder ShowStatusBar -bool true
+defaults write com.apple.finder FXPreferredViewStyle -string "Nlsv"
+defaults write com.apple.finder _FXShowPosixPathInTitle -bool true
+defaults write com.apple.finder _FXSortFoldersFirst -bool true
+defaults write com.apple.finder FXDefaultSearchScope -string "SCcf"
+killall Finder
+```
+Shows hidden files, all extensions, path bar, status bar, list view by default, full POSIX path in title, folders sorted first, and searches the current folder instead of "This Mac".
+
 ### Disable close/quit confirmations
 ```bash
 defaults write NSGlobalDomain NSCloseAlwaysConfirmsChanges -bool false
