@@ -10,6 +10,7 @@ brew "yazi"
 brew "gh"
 brew "duti"
 brew "borders"
+brew "sketchybar"
 
 cask "nikitabobko/tap/aerospace"
 cask "ghostty"

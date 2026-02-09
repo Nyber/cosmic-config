@@ -29,7 +29,7 @@ brew bundle --file="$DOTFILES/Brewfile"
 ok "Packages installed"
 
 # ---------------------------------------------------------------------------
-# 3. Start JankyBorders service
+# 3. Start services
 # ---------------------------------------------------------------------------
 info "Starting JankyBorders service"
 if brew services list | grep -q 'borders.*started'; then
@@ -37,6 +37,14 @@ if brew services list | grep -q 'borders.*started'; then
 else
     brew services start felixkratz/formulae/borders
     ok "JankyBorders started"
+fi
+
+info "Starting SketchyBar service"
+if brew services list | grep -q 'sketchybar.*started'; then
+    ok "SketchyBar already running"
+else
+    brew services start sketchybar
+    ok "SketchyBar started"
 fi
 
 # ---------------------------------------------------------------------------
@@ -179,9 +187,9 @@ fi
 sudo pmset -a displaysleep 15
 ok "Display sleep set to 15 min"
 
-# Menu bar always visible
-defaults write NSGlobalDomain _HIHideMenuBar -bool false
-ok "Menu bar always visible"
+# Auto-hide macOS menu bar (SketchyBar replaces it with topmost=on)
+defaults write com.apple.WindowManager AutoHideMenuBar -int 3
+ok "macOS menu bar auto-hidden (SketchyBar replaces it)"
 
 # Don't confirm unsaved changes on close
 defaults write NSGlobalDomain NSCloseAlwaysConfirmsChanges -bool false
