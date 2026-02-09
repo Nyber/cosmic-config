@@ -19,8 +19,7 @@ Clone anywhere you like — the install script detects its own location.
 4. **Symlinks** everything under `home/` into `~/` (backs up existing files to `~/.dotfiles-backup/`)
 5. Installs **system configs** into `/etc/` with marker-managed blocks (`# BEGIN/END dotfiles`)
 6. Clones **Yazi Tokyo Night** flavor
-7. Copies **wallpaper** to `~/Pictures/`
-8. Applies **macOS settings** (dark mode, Dock, Finder, key repeat, passwordless sudo, display sleep, auto-hide menu bar, wallpaper, Citrix `.ica` association)
+7. Applies **macOS settings** (dark mode, Dock, Finder, key repeat, passwordless sudo, display sleep, auto-hide menu bar, Citrix `.ica` association)
 
 The script is idempotent — safe to re-run.
 
@@ -45,8 +44,6 @@ dotfiles/
 │   ├── zprofile.append     # Appended to /etc/zprofile
 │   ├── starship.toml       # Prompt theme
 │   └── eza/theme.yml       # ls theme
-└── wallpaper/
-    └── windows-xp-bliss.jpg
 ```
 
 ## Key bindings

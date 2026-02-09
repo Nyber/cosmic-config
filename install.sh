@@ -149,19 +149,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# 7. Wallpaper file
-# ---------------------------------------------------------------------------
-info "Wallpaper"
-if [[ -f "$HOME/Pictures/windows-xp-bliss.jpg" ]]; then
-    ok "Already in place"
-else
-    mkdir -p "$HOME/Pictures"
-    cp "$DOTFILES/wallpaper/windows-xp-bliss.jpg" "$HOME/Pictures/windows-xp-bliss.jpg"
-    ok "Copied to ~/Pictures/"
-fi
-
-# ---------------------------------------------------------------------------
-# 8. macOS settings
+# 7. macOS settings
 # ---------------------------------------------------------------------------
 info "macOS settings"
 
@@ -239,10 +227,6 @@ defaults write com.apple.dock wvous-br-corner -int 14
 defaults write com.apple.dock wvous-br-modifier -int 0
 killall Dock 2>/dev/null || true
 ok "Dock: autohide, small icons, stripped apps, Quick Note hot corner"
-
-# Desktop wallpaper
-osascript -e 'tell application "System Events" to tell every desktop to set picture to "'"$HOME"'/Pictures/windows-xp-bliss.jpg"'
-ok "Desktop wallpaper set"
 
 # Citrix .ica file association
 if command -v duti &>/dev/null; then

@@ -941,19 +941,3 @@ killall Dock
 ```
 Note: `_HIHideMenuBar` no longer fully works on macOS 26. The `topmost=on` setting is what actually covers it.
 
-### Wallpaper (Windows XP "Bliss")
-
-Desktop and lock screen both use the classic Windows XP "Bliss" wallpaper.
-
-1. Place the image at `~/Pictures/windows-xp-bliss.jpg`.
-
-2. Set the desktop wallpaper:
-```bash
-osascript -e 'tell application "System Events" to tell every desktop to set picture to "/Users/wyoung5/Pictures/windows-xp-bliss.jpg"'
-```
-
-3. Set the lock screen wallpaper (macOS 26+):
-
-   macOS 26 uses `~/Library/Application Support/com.apple.wallpaper/Store/Index.plist`. The lock screen corresponds to "Idle" entries with provider `com.apple.wallpaper.choice.image`. Edit the plist to point the idle image path to `~/Pictures/windows-xp-bliss.jpg`.
-
-   **Note:** The old method (`sudo cp` to `/Library/Caches/Desktop Pictures/`) no longer works on macOS 26+. macOS updates may also reset the lock screen image.
