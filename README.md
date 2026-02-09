@@ -50,6 +50,7 @@ dotfiles/
 
 | Shortcut | Action |
 |----------|--------|
+| `ctrl + m` | Minimize window (AeroSpace) |
 | `ctrl + q` | Close Ghostty surface (tab/split/window) |
 
 See `.aerospace.toml` for the full AeroSpace shortcut map (`ctrl` as base modifier).

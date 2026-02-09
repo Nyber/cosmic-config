@@ -45,6 +45,7 @@ persistent-workspaces = ["1", "2", "3", "4", "5"]
     ctrl-slash = 'layout tiles horizontal vertical'
     ctrl-comma = 'layout accordion horizontal vertical'
     ctrl-f     = 'fullscreen'
+    ctrl-m     = 'macos-native-minimize'
 
     # --- Resize ---
     ctrl-equal = 'resize smart +50'
