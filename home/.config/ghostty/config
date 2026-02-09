@@ -20,3 +20,5 @@ window-theme = auto
 split-divider-color = #7aa2f7
 unfocused-split-fill = #1a1b26
 unfocused-split-opacity = 0.85
+
+keybind = ctrl+q=close_surface
