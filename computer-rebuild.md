@@ -76,7 +76,7 @@ exec-on-workspace-change = ['/bin/bash', '-c', '~/.config/aerospace/workspace-ch
     alt-cmd-comma = 'layout accordion horizontal vertical'
     alt-cmd-f     = 'fullscreen'
     alt-cmd-m     = ['exec-and-forget $HOME/.config/aerospace/close-window.sh', 'macos-native-minimize']
-    alt-cmd-q     = ['close', 'exec-and-forget $HOME/.config/aerospace/close-window.sh']
+    alt-cmd-q     = 'exec-and-forget osascript -e "tell application (path to frontmost application as text) to quit" ; sleep 0.5 ; $HOME/.config/aerospace/close-window.sh'
 
     # --- Resize ---
     alt-cmd-equal = 'resize smart +50'
@@ -197,8 +197,13 @@ Called by `exec-on-workspace-change`. Updates SketchyBar and hides the Zoom app 
 
 ```bash
 #!/bin/sh
+# Called by AeroSpace on workspace change.
+# 1. Updates SketchyBar
+# 2. Hides Zoom when leaving its workspace, unhides when arriving
+
 sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE="$AEROSPACE_FOCUSED_WORKSPACE"
 
+# Hide/unhide Zoom based on whether it's on the focused workspace
 if pgrep -xq "zoom.us"; then
     if aerospace list-windows --workspace focused 2>/dev/null | grep -q "zoom.us"; then
         osascript -e 'tell application "System Events" to set visible of process "zoom.us" to true' 2>/dev/null
@@ -248,7 +253,7 @@ All shortcuts use `fn` as the base modifier (mapped via Karabiner-Elements to `c
 |--------|----------|
 | Toggle tiles direction | `fn + /` |
 | Toggle accordion | `fn + ,` |
-| Close window | `fn + q` |
+| Quit app | `fn + q` |
 | Fullscreen | `fn + f` |
 | Minimize (auto-leaves empty workspace) | `fn + m` |
 | Grow | `fn + =` |
@@ -260,7 +265,11 @@ All shortcuts use `fn` as the base modifier (mapped via Karabiner-Elements to `c
 | `r` | Reset/flatten layout |
 | `f` | Toggle float/tile |
 | `backspace` | Close all windows but current |
-| `esc` | Exit service mode |
+| `fn + shift + h` | Join with left |
+| `fn + shift + j` | Join with down |
+| `fn + shift + k` | Join with up |
+| `fn + shift + l` | Join with right |
+| `esc` | Reload config & exit service mode |
 
 ## Karabiner-Elements (Key Remapping)
 
@@ -326,7 +335,7 @@ borders "${options[@]}"
 
 ## SketchyBar (Status Bar)
 
-Custom status bar that replaces the macOS menu bar. Uses **SbarLua** for Lua-based configuration. Shows AeroSpace workspaces with app icons, menus toggle, front app, media controls, calendar, volume (with audio device switching), battery, screenshot, VPN toggle, wifi, and CPU graph.
+Custom status bar that replaces the macOS menu bar. Uses **SbarLua** for Lua-based configuration. Shows AeroSpace workspaces with app icons, menus toggle, front app, media controls, calendar, volume (with audio device switching), battery, screenshot, and VPN toggle.
 
 ### Install
 ```bash
@@ -368,22 +377,24 @@ items/
   calendar.lua        # Date/time
   media.lua           # Now playing (Spotify/Music)
   widgets/
+    init.lua          # Loads all widget modules
     battery.lua       # Battery % with remaining time popup
     volume.lua        # Volume with slider popup + audio device picker
     screenshot.lua    # Screenshot toolbar launcher
     vpn.lua           # F5 BIG-IP Edge Client toggle
-    wifi.lua          # Network speed + connection popup
-    cpu.lua           # CPU graph
 helpers/
   init.lua            # Loads SbarLua module + builds C helpers
+  makefile            # Builds C helpers
+  .gitignore          # Ignores compiled binaries
   app_icons.lua       # App name to sketchybar-app-font icon map
   vpn_toggle.sh       # VPN connect/disconnect via osascript
-  menus/              # C helper for native menu bar access
-  event_providers/    # C helpers for cpu_load and network_load
+  menus/              # Native menu bar access (C)
+    makefile
+    menus.c
 ```
 
 ### Building C helpers
-On first run, `helpers/init.lua` runs `make` in the `helpers/` directory to compile the C event providers (`cpu_load`, `network_load`) and the `menus` helper. This requires Xcode Command Line Tools.
+On first run, `helpers/init.lua` runs `make` in the `helpers/` directory to compile the `menus` C helper. This requires Xcode Command Line Tools.
 
 ### Notes
 - Tokyo Night Storm theme throughout — matches Ghostty, Starship, JankyBorders.
@@ -695,7 +706,7 @@ Save to `~/.gitconfig`:
 ```ini
 [user]
 	name = Nyber
-	email = null@null.com
+	email = 4050537+Nyber@users.noreply.github.com
 [init]
 	defaultBranch = main
 [pull]
@@ -715,11 +726,17 @@ Save to `~/.config/gh/config.yml`:
 ```yaml
 version: 1
 git_protocol: https
+editor:
 prompt: enabled
 prefer_editor_prompt: disabled
+pager:
 aliases:
     co: pr checkout
+http_unix_socket:
+browser:
 color_labels: disabled
+accessible_colors: disabled
+accessible_prompter: disabled
 spinner: enabled
 ```
 
