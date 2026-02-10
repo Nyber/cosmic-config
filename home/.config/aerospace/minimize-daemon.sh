@@ -1,12 +1,10 @@
 #!/bin/sh
 # Persistent daemon: detects minimized windows and restores them to their
 # original workspace when unminimized from the Dock.
-# Started automatically by workspace-changed.sh.
+# Managed by LaunchAgent (com.aerospace.minimize-daemon).
 
 PREV_FILE=$(mktemp)
 CURR_FILE=$(mktemp)
-WS_MAP_DIR="$HOME/.config/aerospace/.ws-map"
-mkdir -p "$WS_MAP_DIR"
 trap 'rm -f "$PREV_FILE" "$CURR_FILE"' EXIT
 
 : > "$PREV_FILE"
@@ -14,21 +12,12 @@ trap 'rm -f "$PREV_FILE" "$CURR_FILE"' EXIT
 while true; do
   aerospace list-windows --all --format '%{window-id} %{workspace}' > "$CURR_FILE"
 
-  # Update workspace map with valid entries only (skip NULL-WOKRSPACE)
+  # Single awk pass: find windows in prev but not curr (just minimized).
+  # PREV is already NULL-filtered, so workspaces are always valid.
+  awk 'NR==FNR {curr[$1]; next} !($1 in curr)' "$CURR_FILE" "$PREV_FILE" |
   while IFS=' ' read -r wid ws; do
-    [ -z "$wid" ] && continue
-    case "$ws" in *NULL*) continue ;; esac
-    echo "$ws" > "$WS_MAP_DIR/$wid"
-  done < "$CURR_FILE"
-
-  # Windows in prev but not curr → just minimized
-  while IFS=' ' read -r wid ws; do
-    [ -z "$wid" ] && continue
-    if ! grep -q "^$wid " "$CURR_FILE"; then
-      # Use last known good workspace from map
-      [ -f "$WS_MAP_DIR/$wid" ] && cp "$WS_MAP_DIR/$wid" "$HOME/.config/aerospace/.minimized-$wid"
-    fi
-  done < "$PREV_FILE"
+    echo "$ws" > "$HOME/.config/aerospace/.minimized-$wid"
+  done
 
   # Windows in curr that have a .minimized file → just restored
   while IFS=' ' read -r wid ws; do
@@ -45,6 +34,7 @@ while true; do
     fi
   done < "$CURR_FILE"
 
-  cp "$CURR_FILE" "$PREV_FILE"
+  # Save curr as prev, filtering NULL-WOKRSPACE transitional entries
+  grep -v NULL "$CURR_FILE" > "$PREV_FILE"
   sleep 0.5
 done
