@@ -75,7 +75,7 @@ exec-on-workspace-change = ['/bin/bash', '-c', '~/.config/aerospace/workspace-ch
     alt-cmd-slash = 'layout tiles horizontal vertical'
     alt-cmd-comma = 'layout accordion horizontal vertical'
     alt-cmd-f     = 'fullscreen'
-    alt-cmd-m     = ['exec-and-forget $HOME/.config/aerospace/close-window.sh', 'macos-native-minimize']
+    alt-cmd-m     = 'exec-and-forget $HOME/.config/aerospace/minimize-window.sh'
     alt-cmd-q     = 'exec-and-forget osascript -e "tell application (path to frontmost application as text) to quit" ; sleep 0.5 ; $HOME/.config/aerospace/close-window.sh'
 
     # --- Resize ---
@@ -192,6 +192,88 @@ fi
 sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE="$(aerospace list-workspaces --focused)"
 ```
 
+#### minimize-window.sh
+Minimizes the focused window via `fn+m`. The `minimize-daemon` handles tracking and restoring to the original workspace — this script just minimizes and handles the empty-workspace auto-switch.
+
+```bash
+#!/bin/sh
+# Minimize the focused window via fn+m. The minimize-daemon handles tracking
+# and restoring to the original workspace — this script just minimizes and
+# handles the empty-workspace auto-switch.
+
+WINDOW_ID=$(aerospace list-windows --focused --format '%{window-id}')
+
+if [ -z "$WINDOW_ID" ]; then
+  exit 0
+fi
+
+aerospace macos-native-minimize --window-id "$WINDOW_ID"
+
+# If workspace is now empty, switch away
+sleep 0.1
+if [ -z "$(aerospace list-windows --workspace focused)" ]; then
+  aerospace workspace-back-and-forth
+fi
+
+sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE="$(aerospace list-workspaces --focused)"
+```
+
+#### minimize-daemon.sh
+Persistent background daemon managed by a LaunchAgent (`KeepAlive` ensures auto-restart). Polls every 0.5s, comparing the current window list with the previous poll. When a window disappears (minimized — via `fn+m` or the yellow button), it saves the window's last workspace. When the window reappears (restored from the Dock), it moves the window back to the original workspace and switches there.
+
+```bash
+#!/bin/sh
+# Persistent daemon: detects minimized windows and restores them to their
+# original workspace when unminimized from the Dock.
+# Managed by LaunchAgent (com.aerospace.minimize-daemon).
+
+PREV_FILE=$(mktemp)
+CURR_FILE=$(mktemp)
+WS_MAP_DIR="$HOME/.config/aerospace/.ws-map"
+mkdir -p "$WS_MAP_DIR"
+trap 'rm -f "$PREV_FILE" "$CURR_FILE"' EXIT
+
+: > "$PREV_FILE"
+
+while true; do
+  aerospace list-windows --all --format '%{window-id} %{workspace}' > "$CURR_FILE"
+
+  # Update workspace map with valid entries only (skip NULL-WOKRSPACE)
+  while IFS=' ' read -r wid ws; do
+    [ -z "$wid" ] && continue
+    case "$ws" in *NULL*) continue ;; esac
+    echo "$ws" > "$WS_MAP_DIR/$wid"
+  done < "$CURR_FILE"
+
+  # Windows in prev but not curr → just minimized
+  while IFS=' ' read -r wid ws; do
+    [ -z "$wid" ] && continue
+    if ! grep -q "^$wid " "$CURR_FILE"; then
+      # Use last known good workspace from map
+      [ -f "$WS_MAP_DIR/$wid" ] && cp "$WS_MAP_DIR/$wid" "$HOME/.config/aerospace/.minimized-$wid"
+    fi
+  done < "$PREV_FILE"
+
+  # Windows in curr that have a .minimized file → just restored
+  while IFS=' ' read -r wid ws; do
+    [ -z "$wid" ] && continue
+    mfile="$HOME/.config/aerospace/.minimized-$wid"
+    if [ -f "$mfile" ]; then
+      orig_ws=$(cat "$mfile")
+      rm -f "$mfile"
+      if [ "$ws" != "$orig_ws" ]; then
+        aerospace move-node-to-workspace "$orig_ws" --window-id "$wid"
+        aerospace workspace "$orig_ws"
+        sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE="$(aerospace list-workspaces --focused)"
+      fi
+    fi
+  done < "$CURR_FILE"
+
+  cp "$CURR_FILE" "$PREV_FILE"
+  sleep 0.5
+done
+```
+
 #### workspace-changed.sh
 Called by `exec-on-workspace-change`. Updates SketchyBar and hides the Zoom app when switching away from its workspace. Zoom creates a persistent floating video overlay (CGWindow layer 3) that's visible on all workspaces — hiding the app suppresses it. Zoom stays running and still receives calls/messages via macOS notifications.
 
@@ -211,6 +293,40 @@ if pgrep -xq "zoom.us"; then
         osascript -e 'tell application "System Events" to set visible of process "zoom.us" to false' 2>/dev/null
     fi
 fi
+```
+
+### LaunchAgent
+
+The minimize daemon runs as a LaunchAgent so it starts at login and auto-restarts if it dies. The plist is symlinked from dotfiles to `~/Library/LaunchAgents/`.
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.aerospace.minimize-daemon</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/sh</string>
+        <string>-c</string>
+        <string>exec $HOME/.config/aerospace/minimize-daemon.sh</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>/dev/null</string>
+    <key>StandardErrorPath</key>
+    <string>/dev/null</string>
+</dict>
+</plist>
+```
+
+To load manually (install.sh handles this via symlink):
+```bash
+launchctl load ~/Library/LaunchAgents/com.aerospace.minimize-daemon.plist
 ```
 
 ### Key Shortcuts
@@ -255,7 +371,7 @@ All shortcuts use `fn` as the base modifier (mapped via Karabiner-Elements to `c
 | Toggle accordion | `fn + ,` |
 | Quit app | `fn + q` |
 | Fullscreen | `fn + f` |
-| Minimize (auto-leaves empty workspace) | `fn + m` |
+| Minimize (restores to original workspace) | `fn + m` |
 | Grow | `fn + =` |
 | Shrink | `fn + -` |
 

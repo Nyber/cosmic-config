@@ -47,7 +47,7 @@ exec-on-workspace-change = ['/bin/bash', '-c', '~/.config/aerospace/workspace-ch
     alt-cmd-slash = 'layout tiles horizontal vertical'
     alt-cmd-comma = 'layout accordion horizontal vertical'
     alt-cmd-f     = 'fullscreen'
-    alt-cmd-m     = ['exec-and-forget $HOME/.config/aerospace/close-window.sh', 'macos-native-minimize']
+    alt-cmd-m     = 'exec-and-forget $HOME/.config/aerospace/minimize-window.sh'
     alt-cmd-q     = 'exec-and-forget osascript -e "tell application (path to frontmost application as text) to quit" ; sleep 0.5 ; $HOME/.config/aerospace/close-window.sh'
 
     # --- Resize ---
