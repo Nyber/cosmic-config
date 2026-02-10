@@ -15,6 +15,7 @@ brew "sketchybar"
 brew "nowplaying-cli"
 brew "switchaudio-osx"
 
+cask "karabiner-elements"
 cask "nikitabobko/tap/aerospace"
 cask "ghostty"
 cask "obsidian"

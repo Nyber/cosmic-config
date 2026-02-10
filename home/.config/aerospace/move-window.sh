@@ -7,5 +7,4 @@ sleep 0.1
 if [ -z "$(aerospace list-windows --workspace focused)" ]; then
   aerospace workspace "$TARGET"
 fi
-AEROSPACE_FOCUSED_WORKSPACE="$(aerospace list-workspaces --focused)" \
-  $HOME/.config/sketchybar/plugins/aerospace_batch.sh
+sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE="$(aerospace list-workspaces --focused)"

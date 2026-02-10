@@ -43,7 +43,7 @@ on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
 # Keep workspaces 1-5 alive
 persistent-workspaces = ["1", "2", "3", "4", "5"]
 
-exec-on-workspace-change = ['~/.config/sketchybar/plugins/aerospace_batch.sh']
+exec-on-workspace-change = ['/bin/bash', '-c', 'sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE=$AEROSPACE_FOCUSED_WORKSPACE']
 
 [key-mapping]
     preset = 'qwerty'
@@ -177,8 +177,7 @@ sleep 0.1
 if [ -z "$(aerospace list-windows --workspace focused)" ]; then
   aerospace workspace "$TARGET"
 fi
-AEROSPACE_FOCUSED_WORKSPACE="$(aerospace list-workspaces --focused)" \
-  $HOME/.config/sketchybar/plugins/aerospace_batch.sh
+sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE="$(aerospace list-workspaces --focused)"
 ```
 
 #### close-window.sh
@@ -190,8 +189,7 @@ sleep 0.1
 if [ -z "$(aerospace list-windows --workspace focused)" ]; then
   aerospace workspace-back-and-forth
 fi
-AEROSPACE_FOCUSED_WORKSPACE="$(aerospace list-workspaces --focused)" \
-  $HOME/.config/sketchybar/plugins/aerospace_batch.sh
+sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE="$(aerospace list-workspaces --focused)"
 ```
 
 ### Key Shortcuts
@@ -285,13 +283,20 @@ borders "${options[@]}"
 
 ## SketchyBar (Status Bar)
 
-Custom status bar that replaces the macOS menu bar. Shows AeroSpace workspaces, active app, power menu, clock, volume, battery, and F5 VPN status with toggle.
+Custom status bar that replaces the macOS menu bar. Uses **SbarLua** for Lua-based configuration. Shows AeroSpace workspaces with app icons, menus toggle, front app, media controls, calendar, volume (with audio device switching), battery, screenshot, VPN toggle, wifi, and CPU graph.
 
 ### Install
 ```bash
-brew install sketchybar
+brew install sketchybar lua
 brew services start sketchybar
 ```
+
+### SbarLua (Lua bindings for SketchyBar)
+SketchyBar's Lua API requires the SbarLua shared library. Install it:
+```bash
+(git clone https://github.com/FelixKratz/SbarLua.git /tmp/SbarLua && cd /tmp/SbarLua && make install && rm -rf /tmp/SbarLua)
+```
+This installs `sketchybar.so` to `~/.local/share/sketchybar_lua/`.
 
 ### Required Permissions
 Grant in **System Settings > Privacy & Security > Accessibility**:
@@ -299,428 +304,53 @@ Grant in **System Settings > Privacy & Security > Accessibility**:
 - `/usr/bin/osascript` — needed by the VPN toggle click script to interact with BIG-IP Edge Client's status bar menu
 
 ### Config
-Save to `~/.config/sketchybar/sketchybarrc` and `chmod +x` it.
 
-```bash
-PLUGIN_DIR="$CONFIG_DIR/plugins"
-FONT="JetBrainsMono Nerd Font Mono"
-source "$CONFIG_DIR/colors.sh"
+The entire config lives in `~/.config/sketchybar/` (symlinked from dotfiles). The entrypoint is `sketchybarrc` which loads the Lua modules.
 
-##### Bar Appearance #####
-sketchybar --bar position=top \
-                 height=32 \
-                 color=$BAR_COLOR \
-                 blur_radius=0 \
-                 shadow=off \
-                 sticky=on \
-                 topmost=on
-
-##### Changing Defaults #####
-default=(
-  padding_left=5
-  padding_right=5
-  icon.font="$FONT:Bold:20.0"
-  label.font="$FONT:Regular:13.0"
-  icon.color=$ICON_COLOR
-  label.color=$LABEL_COLOR
-  icon.padding_left=4
-  icon.padding_right=4
-  label.padding_left=4
-  label.padding_right=4
-)
-sketchybar --default "${default[@]}"
-
-##### AeroSpace Workspace Indicators #####
-for sid in 1 2 3 4 5; do
-  sketchybar --add item workspace."$sid" left \
-             --set workspace."$sid" \
-                   icon="$sid" \
-                   icon.font="$FONT:Bold:14.0" \
-                   icon.color=$DIM \
-                   icon.highlight_color=$ICON_COLOR \
-                   icon.padding_left=8 \
-                   icon.padding_right=2 \
-                   label.font="sketchybar-app-font:Regular:14.0" \
-                   label.color=$HIGHLIGHT \
-                   label.highlight_color=$ICON_COLOR \
-                   label.y_offset=1 \
-                   background.color=$HIGHLIGHT \
-                   background.corner_radius=5 \
-                   background.height=22 \
-                   background.drawing=off \
-                   script="$PLUGIN_DIR/aerospace.sh" \
-                   click_script="aerospace workspace $sid"
-done
-sketchybar --subscribe workspace.1 front_app_switched
-
-##### Front App #####
-sketchybar --add item front_app left \
-           --set front_app icon.drawing=off \
-                           label.color=$ICON_COLOR \
-                           script="$PLUGIN_DIR/front_app.sh" \
-           --subscribe front_app front_app_switched
-
-##### Right Items #####
-sketchybar --add item power right \
-           --set power icon="⏻" \
-                       icon.color=$HIGHLIGHT \
-                       label.drawing=off \
-                       click_script="$PLUGIN_DIR/power.sh" \
-           --add item clock right \
-           --set clock update_freq=10 \
-                       icon= \
-                       icon.color=$HIGHLIGHT \
-                       script="$PLUGIN_DIR/clock.sh" \
-           --add item volume right \
-           --set volume icon.color=$HIGHLIGHT \
-                        script="$PLUGIN_DIR/volume.sh" \
-           --subscribe volume volume_change \
-           --add item battery right \
-           --set battery update_freq=120 \
-                         icon.color=$HIGHLIGHT \
-                         script="$PLUGIN_DIR/battery.sh" \
-           --subscribe battery system_woke power_source_change \
-           --add item screenshot right \
-           --set screenshot icon="󰄀" \
-                            icon.color=$HIGHLIGHT \
-                            label.drawing=off \
-                            click_script="open -a Screenshot" \
-           --add item vpn right \
-           --set vpn update_freq=5 \
-                     icon="󰌿" \
-                     icon.color=$DIM \
-                     label.drawing=on \
-                     script="$PLUGIN_DIR/vpn.sh" \
-                     click_script="$PLUGIN_DIR/vpn_click.sh"
-
-##### Force all scripts to run the first time #####
-sketchybar --update
+```
+~/.config/sketchybar/
+sketchybarrc          # Entrypoint (loads helpers + init.lua)
+init.lua              # Loads bar, defaults, items; starts event loop
+bar.lua               # Bar appearance (height, color, topmost)
+colors.lua            # Tokyo Night Storm palette
+default.lua           # Default item styling
+icons.lua             # SF Symbols + NerdFont icon maps
+settings.lua          # Font, padding, icon set selection
+items/
+  init.lua            # Loads all items
+  apple.lua           # Apple menu (click opens native menus)
+  menus.lua           # App menu items (swap with spaces on click)
+  spaces.lua          # AeroSpace workspace indicators with app icons
+  front_app.lua       # Active app name
+  calendar.lua        # Date/time
+  media.lua           # Now playing (Spotify/Music)
+  widgets/
+    battery.lua       # Battery % with remaining time popup
+    volume.lua        # Volume with slider popup + audio device picker
+    screenshot.lua    # Screenshot toolbar launcher
+    vpn.lua           # F5 BIG-IP Edge Client toggle
+    wifi.lua          # Network speed + connection popup
+    cpu.lua           # CPU graph
+helpers/
+  init.lua            # Loads SbarLua module + builds C helpers
+  app_icons.lua       # App name to sketchybar-app-font icon map
+  vpn_toggle.sh       # VPN connect/disconnect via osascript
+  menus/              # C helper for native menu bar access
+  event_providers/    # C helpers for cpu_load and network_load
 ```
 
-### Colors
-
-Save to `~/.config/sketchybar/colors.sh`. Sourced by `sketchybarrc` and plugin scripts.
-
-```sh
-#!/bin/sh
-# Tokyo Night Storm palette for SketchyBar
-BAR_COLOR=0xff24283b
-ICON_COLOR=0xffc0caf5
-LABEL_COLOR=0xffc0caf5
-HIGHLIGHT=0xff7aa2f7
-DIM=0xff565f89
-```
-
-### Plugin Scripts
-
-Create `~/.config/sketchybar/plugins/` and save these scripts. `chmod +x` each one.
-
-#### icon_map.sh
-Download from [sketchybar-app-font releases](https://github.com/kvndrsslr/sketchybar-app-font/releases) — maps app names to ligature strings for the icon font.
-
-#### aerospace_batch.sh
-```bash
-#!/bin/bash
-
-# Batch-update all workspace indicators in a single sketchybar call.
-# Called directly by AeroSpace's exec-on-workspace-change.
-
-source "${0%/*}/icon_map.sh"
-
-FOCUSED="${AEROSPACE_FOCUSED_WORKSPACE:-$(aerospace list-workspaces --focused)}"
-NON_EMPTY="$(aerospace list-workspaces --monitor all --empty no)"
-
-args=()
-for sid in 1 2 3 4 5; do
-  APPS=""
-  while IFS= read -r app; do
-    [ -z "$app" ] && continue
-    __icon_map "$app"
-    APPS+="${icon_result} "
-  done < <(aerospace list-windows --workspace "$sid" --format '%{app-name}' 2>/dev/null | sort -u)
-
-  if [ "$FOCUSED" = "$sid" ]; then
-    args+=(--set "workspace.$sid" drawing=on icon.highlight=on label.highlight=on background.drawing=on label="$APPS")
-  elif echo "$NON_EMPTY" | grep -qx "$sid"; then
-    args+=(--set "workspace.$sid" drawing=on icon.highlight=off label.highlight=off background.drawing=off label="$APPS")
-  else
-    args+=(--set "workspace.$sid" drawing=off)
-  fi
-done
-
-sketchybar "${args[@]}"
-```
-
-#### aerospace.sh
-```bash
-#!/bin/bash
-
-source "$CONFIG_DIR/plugins/icon_map.sh"
-
-# If triggered by front_app_switched, do a full batch update
-if [ "$SENDER" = "front_app_switched" ]; then
-  AEROSPACE_FOCUSED_WORKSPACE="$(aerospace list-workspaces --focused)" \
-    "$CONFIG_DIR/plugins/aerospace_batch.sh"
-  exit 0
-fi
-
-# Per-item update (initial load via sketchybar --update)
-SID="${NAME##*.}"
-FOCUSED="${FOCUSED_WORKSPACE:-$(aerospace list-workspaces --focused)}"
-NON_EMPTY="$(aerospace list-workspaces --monitor all --empty no)"
-
-APPS=""
-while IFS= read -r app; do
-  [ -z "$app" ] && continue
-  __icon_map "$app"
-  APPS+="${icon_result} "
-done < <(aerospace list-windows --workspace "$SID" --format '%{app-name}' 2>/dev/null | sort -u)
-
-if echo "$NON_EMPTY" | grep -qx "$SID"; then
-  if [ "$FOCUSED" = "$SID" ]; then
-    sketchybar --set "$NAME" drawing=on icon.highlight=on label.highlight=on background.drawing=on label="$APPS"
-  else
-    sketchybar --set "$NAME" drawing=on icon.highlight=off label.highlight=off background.drawing=off label="$APPS"
-  fi
-else
-  sketchybar --set "$NAME" drawing=off
-fi
-```
-
-#### front_app.sh
-```bash
-#!/bin/sh
-
-# Some events send additional information specific to the event in the $INFO
-# variable. E.g. the front_app_switched event sends the name of the newly
-# focused application in the $INFO variable:
-# https://felixkratz.github.io/SketchyBar/config/events#events-and-scripting
-
-if [ "$SENDER" = "front_app_switched" ]; then
-  sketchybar --set "$NAME" label="$INFO"
-fi
-```
-
-#### clock.sh
-```bash
-#!/bin/sh
-
-# The $NAME variable is passed from sketchybar and holds the name of
-# the item invoking this script:
-# https://felixkratz.github.io/SketchyBar/config/events#events-and-scripting
-
-sketchybar --set "$NAME" label="$(date '+%a %b %-d %-I:%M %p')"
-```
-
-#### volume.sh
-```bash
-#!/bin/sh
-
-# The volume_change event supplies a $INFO variable in which the current volume
-# percentage is passed to the script.
-
-if [ "$SENDER" = "volume_change" ]; then
-  VOLUME="$INFO"
-
-  case "$VOLUME" in
-    [6-9][0-9]|100) ICON="󰕾"
-    ;;
-    [3-5][0-9]) ICON="󰖀"
-    ;;
-    [1-9]|[1-2][0-9]) ICON="󰕿"
-    ;;
-    *) ICON="󰖁"
-  esac
-
-  sketchybar --set "$NAME" icon="$ICON" label="$VOLUME%"
-fi
-```
-
-#### battery.sh
-```bash
-#!/bin/bash
-
-PERCENTAGE="$(pmset -g batt | grep -Eo "\d+%" | cut -d% -f1)"
-CHARGING="$(pmset -g batt | grep 'AC Power')"
-
-if [ "$PERCENTAGE" = "" ]; then
-  exit 0
-fi
-
-case "${PERCENTAGE}" in
-  9[0-9]|100) ICON=""
-  ;;
-  [6-8][0-9]) ICON=""
-  ;;
-  [3-5][0-9]) ICON=""
-  ;;
-  [1-2][0-9]) ICON=""
-  ;;
-  *) ICON=""
-esac
-
-if [[ "$CHARGING" != "" ]]; then
-  ICON=""
-fi
-
-# The item invoking this script (name $NAME) will get its icon and label
-# updated with the current battery status
-sketchybar --set "$NAME" icon="$ICON" label="${PERCENTAGE}%"
-```
-
-#### power.sh
-```bash
-#!/bin/bash
-source "$CONFIG_DIR/colors.sh"
-
-# Highlight the power icon while the menu is open
-sketchybar --set power icon.color=$ICON_COLOR \
-                       background.drawing=on \
-                       background.color=$HIGHLIGHT \
-                       background.corner_radius=5 \
-                       background.height=22
-
-# Launch native power menu window
-rm -f /tmp/.sketchybar_power_choice
-"$CONFIG_DIR/plugins/power-menu"
-choice=$(cat /tmp/.sketchybar_power_choice 2>/dev/null)
-rm -f /tmp/.sketchybar_power_choice
-
-# Revert highlight
-sketchybar --set power icon.color=$HIGHLIGHT \
-                       background.drawing=off
-
-case "$choice" in
-  "Shut Down")   osascript -e 'tell application "System Events" to shut down' ;;
-  "Restart")     osascript -e 'tell application "System Events" to restart' ;;
-  "Sleep")       pmset sleepnow ;;
-  "Lock Screen") osascript -e 'tell application "System Events" to key code 12 using {control down, command down}' ;;
-  "Log Out")     osascript -e 'tell application "System Events" to log out' ;;
-esac
-```
-
-#### power_menu.swift
-The native Swift GUI for the power menu. Build with:
-```bash
-swiftc -o power-menu power_menu.swift
-```
-
-```swift
-import AppKit
-
-class PowerMenu: NSObject, NSApplicationDelegate, NSWindowDelegate {
-    var window: NSWindow!
-    let actions = ["Lock Screen", "Sleep", "Restart", "Shut Down", "Log Out"]
-
-    func applicationDidFinishLaunching(_ notification: Notification) {
-        let width: CGFloat = 180
-        let buttonHeight: CGFloat = 28
-        let padding: CGFloat = 12
-        let spacing: CGFloat = 6
-        let height = padding * 2 + buttonHeight * CGFloat(actions.count) + spacing * CGFloat(actions.count - 1)
-
-        window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: width, height: height),
-            styleMask: [.titled, .closable],
-            backing: .buffered,
-            defer: false
-        )
-        window.title = "Power"
-        window.center()
-        window.delegate = self
-        window.isReleasedWhenClosed = false
-
-        let contentView = NSView(frame: NSRect(x: 0, y: 0, width: width, height: height))
-
-        for (i, action) in actions.enumerated() {
-            let y = height - padding - buttonHeight - CGFloat(i) * (buttonHeight + spacing)
-            let button = NSButton(frame: NSRect(x: padding, y: y, width: width - padding * 2, height: buttonHeight))
-            button.title = action
-            button.bezelStyle = .rounded
-            button.target = self
-            button.action = #selector(buttonClicked(_:))
-            contentView.addSubview(button)
-        }
-
-        window.contentView = contentView
-        window.makeKeyAndOrderFront(nil)
-        NSApp.activate(ignoringOtherApps: true)
-    }
-
-    @objc func buttonClicked(_ sender: NSButton) {
-        try? sender.title.write(toFile: "/tmp/.sketchybar_power_choice", atomically: true, encoding: .utf8)
-        NSApp.terminate(nil)
-    }
-
-    func windowWillClose(_ notification: Notification) {
-        NSApp.terminate(nil)
-    }
-}
-
-let app = NSApplication.shared
-app.setActivationPolicy(.accessory)
-let delegate = PowerMenu()
-app.delegate = delegate
-app.run()
-```
-
-#### vpn.sh
-```bash
-#!/bin/bash
-source "$CONFIG_DIR/colors.sh"
-
-# F5 BIG-IP Edge Client: svpn daemon runs when tunnel is active
-if pgrep -x svpn > /dev/null 2>&1; then
-  sketchybar --set "$NAME" icon="󰌾" icon.color=$HIGHLIGHT label="VPN" label.color=$HIGHLIGHT
-else
-  sketchybar --set "$NAME" icon="󰌿" icon.color=$DIM label="" label.color=$DIM
-fi
-```
-
-#### vpn_click.sh
-```bash
-#!/bin/bash
-
-# Toggle F5 BIG-IP Edge Client VPN via its status bar menu
-
-APP="BIG-IP Edge Client"
-
-# Ensure the app is running
-if ! pgrep -f "$APP" > /dev/null 2>&1; then
-  open -a "$APP"
-  sleep 2
-fi
-
-if pgrep -x svpn > /dev/null 2>&1; then
-  # VPN is connected — click Disconnect
-  osascript -e "
-    tell application \"System Events\"
-      tell process \"$APP\"
-        click menu bar item 1 of menu bar 2
-        delay 0.3
-        click menu item \"Disconnect\" of menu 1 of menu bar item 1 of menu bar 2
-      end tell
-    end tell"
-else
-  # VPN is disconnected — click Connect
-  osascript -e "
-    tell application \"System Events\"
-      tell process \"$APP\"
-        click menu bar item 1 of menu bar 2
-        delay 0.3
-        click menu item \"Connect\" of menu 1 of menu bar item 1 of menu bar 2
-      end tell
-    end tell"
-fi
-```
+### Building C helpers
+On first run, `helpers/init.lua` runs `make` in the `helpers/` directory to compile the C event providers (`cpu_load`, `network_load`) and the `menus` helper. This requires Xcode Command Line Tools.
 
 ### Notes
 - Tokyo Night Storm theme throughout — matches Ghostty, Starship, JankyBorders.
 - `topmost=on` renders SketchyBar above the macOS menu bar (see macOS Settings section for auto-hide fallback).
-- Power item (⏻) opens a picker dialog with Shut Down, Restart, Sleep, Lock Screen, and Log Out.
-- Screenshot item opens the macOS Screenshot toolbar (`Cmd+Shift+5`) on click.
+- AeroSpace integration uses `sketchybar --trigger aerospace_workspace_change` events (not shell plugin scripts).
+- Workspace indicators show app icons via `sketchybar-app-font`; only non-empty or focused workspaces are visible.
+- Clicking the front app toggles between showing workspace indicators and native app menus.
+- Media widget shows now playing info for Spotify/Music with playback controls popup.
+- Volume widget includes a slider popup and audio device picker (via `switchaudio-osx`).
 - VPN item polls every 5 seconds for the `svpn` process (F5 BIG-IP Edge Client). Clicking toggles connect/disconnect.
-- Workspace indicators only show non-empty workspaces; the focused one gets a highlighted background.
 - Starts at login via `brew services`.
 
 ## Terminal (Ghostty)
