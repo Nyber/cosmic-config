@@ -43,7 +43,7 @@ on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
 # Keep workspaces 1-5 alive
 persistent-workspaces = ["1", "2", "3", "4", "5"]
 
-exec-on-workspace-change = ['/bin/bash', '-c', 'sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE=$AEROSPACE_FOCUSED_WORKSPACE']
+exec-on-workspace-change = ['/bin/bash', '-c', '~/.config/aerospace/workspace-changed.sh']
 
 [key-mapping]
     preset = 'qwerty'
@@ -190,6 +190,22 @@ if [ -z "$(aerospace list-windows --workspace focused)" ]; then
   aerospace workspace-back-and-forth
 fi
 sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE="$(aerospace list-workspaces --focused)"
+```
+
+#### workspace-changed.sh
+Called by `exec-on-workspace-change`. Updates SketchyBar and hides the Zoom app when switching away from its workspace. Zoom creates a persistent floating video overlay (CGWindow layer 3) that's visible on all workspaces — hiding the app suppresses it. Zoom stays running and still receives calls/messages via macOS notifications.
+
+```bash
+#!/bin/sh
+sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE="$AEROSPACE_FOCUSED_WORKSPACE"
+
+if pgrep -xq "zoom.us"; then
+    if aerospace list-windows --workspace focused 2>/dev/null | grep -q "zoom.us"; then
+        osascript -e 'tell application "System Events" to set visible of process "zoom.us" to true' 2>/dev/null
+    else
+        osascript -e 'tell application "System Events" to set visible of process "zoom.us" to false' 2>/dev/null
+    fi
+fi
 ```
 
 ### Key Shortcuts
