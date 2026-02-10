@@ -5,22 +5,12 @@ local colors = require("colors")
 sbar.add("item", { position = "right", width = settings.group_paddings })
 
 local cal = sbar.add("item", {
-  icon = {
+  icon = { drawing = false },
+  label = {
     color = colors.white,
     padding_left = 8,
     padding_right = 8,
-    font = {
-      style = settings.font.style_map["Black"],
-      size = 12.0,
-    },
-  },
-  label = {
-    color = colors.white,
-    padding_left = 0,
-    padding_right = 8,
-    width = 76,
-    align = "right",
-    font = { family = settings.font.numbers },
+    font = { family = settings.font.numbers, size = 12.0 },
   },
   position = "right",
   update_freq = 30,
@@ -42,10 +32,10 @@ sbar.add("item", "widgets.calendar.padding", {
 })
 
 cal:subscribe({ "forced", "routine", "system_woke" }, function(env)
+  local month = tonumber(os.date("%m"))
   local day = tonumber(os.date("%d"))
   local hour = tonumber(os.date("%I"))
   cal:set({
-    icon = os.date("%a %b ") .. day,
-    label = hour .. os.date(":%M %p"),
+    label = month .. "/" .. day .. os.date("/%y") .. " " .. hour .. os.date(":%M %p"),
   })
 end)
