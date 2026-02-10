@@ -22,11 +22,37 @@ else
 fi
 
 # ---------------------------------------------------------------------------
+# 1.5. Xcode Command Line Tools
+# ---------------------------------------------------------------------------
+info "Checking Xcode Command Line Tools"
+if xcode-select -p &>/dev/null; then
+    ok "Xcode CLI tools already installed"
+else
+    info "Installing Xcode CLI tools"
+    xcode-select --install
+    info "Waiting for Xcode CLI tools installation (press Enter when done)..."
+    read -r
+fi
+
+# ---------------------------------------------------------------------------
 # 2. brew bundle
 # ---------------------------------------------------------------------------
 info "Running brew bundle"
 brew bundle --file="$DOTFILES/Brewfile"
 ok "Packages installed"
+
+# ---------------------------------------------------------------------------
+# 2.5. SbarLua (Lua bindings for SketchyBar)
+# ---------------------------------------------------------------------------
+info "Installing SbarLua"
+SBARLUA_DIR="$HOME/.local/share/sketchybar_lua"
+if [[ -f "$SBARLUA_DIR/sketchybar.so" ]]; then
+    ok "SbarLua already installed"
+else
+    (git clone https://github.com/FelixKratz/SbarLua.git /tmp/SbarLua \
+      && cd /tmp/SbarLua && make install && rm -rf /tmp/SbarLua)
+    ok "SbarLua installed"
+fi
 
 # ---------------------------------------------------------------------------
 # 3. Start services
@@ -82,6 +108,9 @@ while IFS= read -r -d '' file; do
     rel="${file#$DOTFILES/home/}"
     link_file "$file" "$HOME/$rel"
 done < <(find "$DOTFILES/home" -type f -print0)
+
+# computer-rebuild.md → ~/
+link_file "$DOTFILES/computer-rebuild.md" "$HOME/computer-rebuild.md"
 
 # ---------------------------------------------------------------------------
 # 5. System configs (sudo)
@@ -146,6 +175,17 @@ if [[ -d "$YAZI_FLAVOR_DIR" ]]; then
 else
     git clone https://github.com/BennyOe/tokyo-night.yazi.git "$YAZI_FLAVOR_DIR"
     ok "Cloned tokyo-night.yazi"
+fi
+
+# ---------------------------------------------------------------------------
+# 6.5. Wallpaper
+# ---------------------------------------------------------------------------
+info "Setting wallpaper"
+if [[ -f "$HOME/Pictures/tokyo-night-apple.png" ]]; then
+    osascript -e 'tell application "System Events" to tell every desktop to set picture to POSIX file "'"$HOME/Pictures/tokyo-night-apple.png"'"' 2>/dev/null || true
+    ok "Desktop wallpaper set"
+else
+    skip "Wallpaper image not found"
 fi
 
 # ---------------------------------------------------------------------------
@@ -234,6 +274,22 @@ if command -v duti &>/dev/null; then
     ok ".ica files → Citrix Workspace"
 else
     skip "duti not found, skipping .ica association"
+fi
+
+# Login screen: show name/password fields instead of user list
+sudo defaults write /Library/Preferences/com.apple.loginwindow SHOWFULLNAME -bool true
+ok "Login screen: name/password fields"
+
+# Login screen profile picture (penguin)
+if [[ -f "/Library/User Pictures/Animals/Penguin.heic" ]]; then
+    sips -s format jpeg "/Library/User Pictures/Animals/Penguin.heic" --out /tmp/penguin.jpg >/dev/null 2>&1
+    CURRENT_USER="$(whoami)"
+    printf '0x0A 0x5C 0x3A 0x2C dsRecTypeStandard:Users 2 dsAttrTypeStandard:RecordName externalbinary:dsAttrTypeStandard:JPEGPhoto\n%s:/tmp/penguin.jpg\n' "$CURRENT_USER" > /tmp/user_pic.dsimport
+    sudo dsimport /tmp/user_pic.dsimport /Local/Default M 2>/dev/null
+    rm -f /tmp/penguin.jpg /tmp/user_pic.dsimport
+    ok "Login screen profile picture (penguin)"
+else
+    skip "Penguin image not found"
 fi
 
 # ---------------------------------------------------------------------------
