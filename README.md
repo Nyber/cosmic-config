@@ -42,7 +42,8 @@ dotfiles/
 │       ├── aerospace/                  # Helper scripts
 │       │   ├── close-window.sh         # Auto-switch on empty workspace
 │       │   ├── launch-app.sh           # Generic app launcher (new window)
-│       │   └── move-window.sh          # Move window + follow if empty
+│       │   ├── move-window.sh          # Move window + follow if empty
+│       │   └── workspace-changed.sh    # SketchyBar update + hide Zoom overlay
 │       ├── borders/bordersrc           # JankyBorders config
 │       ├── gh/config.yml               # GitHub CLI config
 │       ├── ghostty/config              # Terminal config
