@@ -15,7 +15,7 @@ on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
 # Keep workspaces 1-5 alive
 persistent-workspaces = ["1", "2", "3", "4", "5"]
 
-exec-on-workspace-change = ['~/.config/sketchybar/plugins/aerospace_batch.sh']
+exec-on-workspace-change = ['/bin/bash', '-c', 'sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE=$AEROSPACE_FOCUSED_WORKSPACE']
 
 [key-mapping]
     preset = 'qwerty'
