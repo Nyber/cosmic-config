@@ -63,8 +63,12 @@ space_menu_swap:subscribe("swap_menus_and_spaces", function(env)
   if drawing then
     menu_watcher:set( { updates = false })
     sbar.set("/menu\\..*/", { drawing = false })
-    sbar.set("/space\\..*/", { drawing = true })
     sbar.set("front_app", { drawing = true })
+    sbar.exec("aerospace list-workspaces --focused", function(focused)
+      focused = focused:gsub("%s+", "")
+      sbar.trigger("aerospace_workspace_change",
+        { FOCUSED_WORKSPACE = focused })
+    end)
   else
     menu_watcher:set( { updates = true })
     sbar.set("/space\\..*/", { drawing = false })
