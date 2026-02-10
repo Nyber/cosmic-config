@@ -659,6 +659,20 @@ run = 'shell "$SHELL" --block'
 desc = "Open shell here"
 ```
 
+## Wallpaper
+
+Tokyo Night Storm "Apple Retro" — Apple logo with retro color stripes on dark navy background.
+
+- **File**: `~/Pictures/tokyo-night-apple.png` (2560x1440, symlinked from dotfiles)
+- **Source**: [tokyo-night/wallpapers](https://github.com/tokyo-night/wallpapers) `storm/os/apple_00_2560x1440.png`
+
+Set automatically by `install.sh`. To set manually:
+```bash
+osascript -e 'tell application "System Events" to tell every desktop to set picture to POSIX file "'"$HOME/Pictures/tokyo-night-apple.png"'"'
+```
+
+Lock screen automatically matches the desktop wallpaper. macOS updates may reset the lock screen image.
+
 ## Citrix Workspace
 
 ### Install
