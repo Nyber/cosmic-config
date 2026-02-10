@@ -86,11 +86,15 @@ local function update_space_icons()
         function(result)
           local icon_line = ""
           local has_app = false
+          local seen = {}
           for app in result:gmatch("[^\r\n]+") do
-            has_app = true
-            local lookup = app_icons[app]
-            local icon = ((lookup == nil) and app_icons["Default"] or lookup)
-            icon_line = icon_line .. icon
+            if not seen[app] then
+              seen[app] = true
+              has_app = true
+              local lookup = app_icons[app]
+              local icon = ((lookup == nil) and app_icons["Default"] or lookup)
+              icon_line = icon_line .. icon
+            end
           end
 
           local is_focused = focused_ws == tostring(i)
@@ -112,6 +116,7 @@ end
 
 space_window_observer:subscribe("aerospace_workspace_change", update_space_icons)
 space_window_observer:subscribe("front_app_switched", update_space_icons)
+space_window_observer:subscribe("space_windows_change", update_space_icons)
 
 -- Trigger initial workspace highlight
 sbar.exec("aerospace list-workspaces --focused", function(focused)
