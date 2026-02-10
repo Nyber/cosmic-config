@@ -36,12 +36,16 @@ dotfiles/
 ├── home/                               # Mirrors ~/ (symlinked)
 │   ├── .aerospace.toml                 # Tiling window manager config
 │   ├── .gitconfig
+│   ├── Library/LaunchAgents/
+│   │   └── com.aerospace.minimize-daemon.plist  # Keeps minimize daemon alive
 │   ├── Pictures/
 │   │   └── tokyo-night-apple.png       # Desktop wallpaper
 │   └── .config/
 │       ├── aerospace/                  # Helper scripts
 │       │   ├── close-window.sh         # Auto-switch on empty workspace
 │       │   ├── launch-app.sh           # Generic app launcher (new window)
+│       │   ├── minimize-daemon.sh       # Restore minimized windows to original workspace
+│       │   ├── minimize-window.sh      # Minimize + empty workspace auto-switch
 │       │   ├── move-window.sh          # Move window + follow if empty
 │       │   └── workspace-changed.sh    # SketchyBar update + hide Zoom overlay
 │       ├── borders/bordersrc           # JankyBorders config
@@ -104,7 +108,7 @@ Karabiner-Elements maps `fn` to `cmd+option`, so AeroSpace binds `alt-cmd-*` but
 | `fn + tab` | Toggle last workspace |
 | `fn + shift + tab` | Move workspace to next monitor |
 | `fn + f` | Fullscreen |
-| `fn + m` | Minimize |
+| `fn + m` | Minimize (restores to original workspace) |
 | `fn + q` | Quit app |
 | `fn + /` | Toggle tiles layout |
 | `fn + ,` | Toggle accordion layout |
