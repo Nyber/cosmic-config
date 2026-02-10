@@ -82,6 +82,15 @@ link_file() {
     local src="$1"   # absolute path in dotfiles
     local dest="$2"  # absolute path in ~/
 
+    # If a parent directory is a symlink into the dotfiles repo, the file is
+    # already effectively linked — skip to avoid creating self-referencing symlinks.
+    local dest_real
+    dest_real="$(cd "$(dirname "$dest")" 2>/dev/null && pwd -P)"
+    if [[ "$dest_real" == "$(dirname "$src")" ]]; then
+        skip "$dest"
+        return
+    fi
+
     if [[ -L "$dest" ]]; then
         local current
         current="$(readlink "$dest")"
