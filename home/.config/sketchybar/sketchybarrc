@@ -1,12 +1,6 @@
 PLUGIN_DIR="$CONFIG_DIR/plugins"
 FONT="JetBrainsMono Nerd Font Mono"
-
-##### Tokyo Night Storm Theme #####
-BAR_COLOR=0xff24283b
-ICON_COLOR=0xffc0caf5
-LABEL_COLOR=0xffc0caf5
-HIGHLIGHT=0xff7aa2f7
-DIM=0xff565f89
+source "$CONFIG_DIR/colors.sh"
 
 ##### Bar Appearance #####
 sketchybar --bar position=top \
@@ -48,15 +42,19 @@ for sid in 1 2 3 4 5; do
                    icon.color=$DIM \
                    icon.highlight_color=$ICON_COLOR \
                    icon.padding_left=8 \
-                   icon.padding_right=8 \
+                   icon.padding_right=2 \
+                   label.font="sketchybar-app-font:Regular:14.0" \
+                   label.color=$HIGHLIGHT \
+                   label.highlight_color=$ICON_COLOR \
+                   label.y_offset=1 \
                    background.color=$HIGHLIGHT \
                    background.corner_radius=5 \
                    background.height=22 \
                    background.drawing=off \
-                   label.drawing=off \
                    script="$PLUGIN_DIR/aerospace.sh" \
                    click_script="aerospace workspace $sid"
 done
+sketchybar --subscribe workspace.1 front_app_switched
 
 ##### Front App #####
 sketchybar --add item front_app left \

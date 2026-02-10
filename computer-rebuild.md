@@ -304,13 +304,7 @@ Save to `~/.config/sketchybar/sketchybarrc` and `chmod +x` it.
 ```bash
 PLUGIN_DIR="$CONFIG_DIR/plugins"
 FONT="JetBrainsMono Nerd Font Mono"
-
-##### Tokyo Night Storm Theme #####
-BAR_COLOR=0xff24283b
-ICON_COLOR=0xffc0caf5
-LABEL_COLOR=0xffc0caf5
-HIGHLIGHT=0xff7aa2f7
-DIM=0xff565f89
+source "$CONFIG_DIR/colors.sh"
 
 ##### Bar Appearance #####
 sketchybar --bar position=top \
@@ -345,15 +339,19 @@ for sid in 1 2 3 4 5; do
                    icon.color=$DIM \
                    icon.highlight_color=$ICON_COLOR \
                    icon.padding_left=8 \
-                   icon.padding_right=8 \
+                   icon.padding_right=2 \
+                   label.font="sketchybar-app-font:Regular:14.0" \
+                   label.color=$HIGHLIGHT \
+                   label.highlight_color=$ICON_COLOR \
+                   label.y_offset=1 \
                    background.color=$HIGHLIGHT \
                    background.corner_radius=5 \
                    background.height=22 \
                    background.drawing=off \
-                   label.drawing=off \
                    script="$PLUGIN_DIR/aerospace.sh" \
                    click_script="aerospace workspace $sid"
 done
+sketchybar --subscribe workspace.1 front_app_switched
 
 ##### Front App #####
 sketchybar --add item front_app left \
@@ -399,9 +397,26 @@ sketchybar --add item power right \
 sketchybar --update
 ```
 
+### Colors
+
+Save to `~/.config/sketchybar/colors.sh`. Sourced by `sketchybarrc` and plugin scripts.
+
+```sh
+#!/bin/sh
+# Tokyo Night Storm palette for SketchyBar
+BAR_COLOR=0xff24283b
+ICON_COLOR=0xffc0caf5
+LABEL_COLOR=0xffc0caf5
+HIGHLIGHT=0xff7aa2f7
+DIM=0xff565f89
+```
+
 ### Plugin Scripts
 
 Create `~/.config/sketchybar/plugins/` and save these scripts. `chmod +x` each one.
+
+#### icon_map.sh
+Download from [sketchybar-app-font releases](https://github.com/kvndrsslr/sketchybar-app-font/releases) — maps app names to ligature strings for the icon font.
 
 #### aerospace_batch.sh
 ```bash
@@ -410,16 +425,24 @@ Create `~/.config/sketchybar/plugins/` and save these scripts. `chmod +x` each o
 # Batch-update all workspace indicators in a single sketchybar call.
 # Called directly by AeroSpace's exec-on-workspace-change.
 
+source "${0%/*}/icon_map.sh"
+
 FOCUSED="${AEROSPACE_FOCUSED_WORKSPACE:-$(aerospace list-workspaces --focused)}"
 NON_EMPTY="$(aerospace list-workspaces --monitor all --empty no)"
 
 args=()
 for sid in 1 2 3 4 5; do
+  APPS=""
+  while IFS= read -r app; do
+    [ -z "$app" ] && continue
+    __icon_map "$app"
+    APPS+="${icon_result} "
+  done < <(aerospace list-windows --workspace "$sid" --format '%{app-name}' 2>/dev/null | sort -u)
+
   if [ "$FOCUSED" = "$sid" ]; then
-    # Always show the focused workspace, even if empty
-    args+=(--set "workspace.$sid" drawing=on icon.highlight=on background.drawing=on)
+    args+=(--set "workspace.$sid" drawing=on icon.highlight=on label.highlight=on background.drawing=on label="$APPS")
   elif echo "$NON_EMPTY" | grep -qx "$sid"; then
-    args+=(--set "workspace.$sid" drawing=on icon.highlight=off background.drawing=off)
+    args+=(--set "workspace.$sid" drawing=on icon.highlight=off label.highlight=off background.drawing=off label="$APPS")
   else
     args+=(--set "workspace.$sid" drawing=off)
   fi
@@ -428,22 +451,36 @@ done
 sketchybar "${args[@]}"
 ```
 
-#### aerospace.sh (initial load only)
+#### aerospace.sh
 ```bash
-#!/bin/sh
+#!/bin/bash
 
-# Show only in-use workspaces, highlight the focused one.
-# Used for initial load via sketchybar --update. No longer subscribed to events.
+source "$CONFIG_DIR/plugins/icon_map.sh"
 
+# If triggered by front_app_switched, do a full batch update
+if [ "$SENDER" = "front_app_switched" ]; then
+  AEROSPACE_FOCUSED_WORKSPACE="$(aerospace list-workspaces --focused)" \
+    "$CONFIG_DIR/plugins/aerospace_batch.sh"
+  exit 0
+fi
+
+# Per-item update (initial load via sketchybar --update)
 SID="${NAME##*.}"
 FOCUSED="${FOCUSED_WORKSPACE:-$(aerospace list-workspaces --focused)}"
 NON_EMPTY="$(aerospace list-workspaces --monitor all --empty no)"
 
+APPS=""
+while IFS= read -r app; do
+  [ -z "$app" ] && continue
+  __icon_map "$app"
+  APPS+="${icon_result} "
+done < <(aerospace list-windows --workspace "$SID" --format '%{app-name}' 2>/dev/null | sort -u)
+
 if echo "$NON_EMPTY" | grep -qx "$SID"; then
   if [ "$FOCUSED" = "$SID" ]; then
-    sketchybar --set "$NAME" drawing=on icon.highlight=on background.drawing=on
+    sketchybar --set "$NAME" drawing=on icon.highlight=on label.highlight=on background.drawing=on label="$APPS"
   else
-    sketchybar --set "$NAME" drawing=on icon.highlight=off background.drawing=off
+    sketchybar --set "$NAME" drawing=on icon.highlight=off label.highlight=off background.drawing=off label="$APPS"
   fi
 else
   sketchybar --set "$NAME" drawing=off
@@ -501,7 +538,7 @@ fi
 
 #### battery.sh
 ```bash
-#!/bin/sh
+#!/bin/bash
 
 PERCENTAGE="$(pmset -g batt | grep -Eo "\d+%" | cut -d% -f1)"
 CHARGING="$(pmset -g batt | grep 'AC Power')"
@@ -534,9 +571,7 @@ sketchybar --set "$NAME" icon="$ICON" label="${PERCENTAGE}%"
 #### power.sh
 ```bash
 #!/bin/bash
-
-HIGHLIGHT=0xff7aa2f7
-ICON_COLOR=0xffc0caf5
+source "$CONFIG_DIR/colors.sh"
 
 # Highlight the power icon while the menu is open
 sketchybar --set power icon.color=$ICON_COLOR \
@@ -632,9 +667,7 @@ app.run()
 #### vpn.sh
 ```bash
 #!/bin/bash
-
-HIGHLIGHT=0xff7aa2f7
-DIM=0xff565f89
+source "$CONFIG_DIR/colors.sh"
 
 # F5 BIG-IP Edge Client: svpn daemon runs when tunnel is active
 if pgrep -x svpn > /dev/null 2>&1; then
