@@ -8,4 +8,4 @@ if [ -z "$(aerospace list-windows --workspace focused)" ]; then
   aerospace workspace "$TARGET"
 fi
 AEROSPACE_FOCUSED_WORKSPACE="$(aerospace list-workspaces --focused)" \
-  /Users/wyoung5/.config/sketchybar/plugins/aerospace_batch.sh
+  $HOME/.config/sketchybar/plugins/aerospace_batch.sh

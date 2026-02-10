@@ -43,7 +43,7 @@ on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
 # Keep workspaces 1-5 alive
 persistent-workspaces = ["1", "2", "3", "4", "5"]
 
-exec-on-workspace-change = ['/Users/wyoung5/.config/sketchybar/plugins/aerospace_batch.sh']
+exec-on-workspace-change = ['~/.config/sketchybar/plugins/aerospace_batch.sh']
 
 [key-mapping]
     preset = 'qwerty'
@@ -59,108 +59,110 @@ exec-on-workspace-change = ['/Users/wyoung5/.config/sketchybar/plugins/aerospace
 
 [mode.main.binding]
 
-    # --- Move windows: ctrl + shift + arrows ---
-    ctrl-shift-left  = 'move left'
-    ctrl-shift-down  = 'move down'
-    ctrl-shift-up    = 'move up'
-    ctrl-shift-right = 'move right'
+    # --- Move windows: fn + shift + arrows ---
+    alt-cmd-shift-left  = 'move left'
+    alt-cmd-shift-down  = 'move down'
+    alt-cmd-shift-up    = 'move up'
+    alt-cmd-shift-right = 'move right'
 
-    # --- Focus (navigate): ctrl + arrows ---
-    ctrl-left  = 'focus left'
-    ctrl-down  = 'focus down'
-    ctrl-up    = 'focus up'
-    ctrl-right = 'focus right'
+    # --- Focus (navigate): fn + arrows ---
+    alt-cmd-left  = 'focus left'
+    alt-cmd-down  = 'focus down'
+    alt-cmd-up    = 'focus up'
+    alt-cmd-right = 'focus right'
 
     # --- Layout ---
-    ctrl-slash = 'layout tiles horizontal vertical'
-    ctrl-comma = 'layout accordion horizontal vertical'
-    ctrl-f     = 'fullscreen'
-    ctrl-m     = 'macos-native-minimize'
-    ctrl-q     = ['close', 'exec-and-forget /Users/wyoung5/.config/aerospace/close-window.sh']
+    alt-cmd-slash = 'layout tiles horizontal vertical'
+    alt-cmd-comma = 'layout accordion horizontal vertical'
+    alt-cmd-f     = 'fullscreen'
+    alt-cmd-m     = ['exec-and-forget $HOME/.config/aerospace/close-window.sh', 'macos-native-minimize']
+    alt-cmd-q     = ['close', 'exec-and-forget $HOME/.config/aerospace/close-window.sh']
 
     # --- Resize ---
-    ctrl-equal = 'resize smart +50'
-    ctrl-minus = 'resize smart -50'
+    alt-cmd-equal = 'resize smart +50'
+    alt-cmd-minus = 'resize smart -50'
 
-    # --- Workspaces: ctrl + number (like macOS ctrl+1/2/3 for Spaces) ---
-    ctrl-1 = 'workspace 1'
-    ctrl-2 = 'workspace 2'
-    ctrl-3 = 'workspace 3'
-    ctrl-4 = 'workspace 4'
-    ctrl-5 = 'workspace 5'
-    ctrl-6 = 'workspace 6'
-    ctrl-7 = 'workspace 7'
-    ctrl-8 = 'workspace 8'
-    ctrl-9 = 'workspace 9'
+    # --- Workspaces: fn + number ---
+    alt-cmd-1 = 'workspace 1'
+    alt-cmd-2 = 'workspace 2'
+    alt-cmd-3 = 'workspace 3'
+    alt-cmd-4 = 'workspace 4'
+    alt-cmd-5 = 'workspace 5'
+    alt-cmd-6 = 'workspace 6'
+    alt-cmd-7 = 'workspace 7'
+    alt-cmd-8 = 'workspace 8'
+    alt-cmd-9 = 'workspace 9'
 
-    # --- Move window to workspace: ctrl + shift + number ---
-    ctrl-shift-1 = ['move-node-to-workspace 1', 'exec-and-forget ~/.config/aerospace/move-window.sh 1']
-    ctrl-shift-2 = ['move-node-to-workspace 2', 'exec-and-forget ~/.config/aerospace/move-window.sh 2']
-    ctrl-shift-3 = ['move-node-to-workspace 3', 'exec-and-forget ~/.config/aerospace/move-window.sh 3']
-    ctrl-shift-4 = ['move-node-to-workspace 4', 'exec-and-forget ~/.config/aerospace/move-window.sh 4']
-    ctrl-shift-5 = ['move-node-to-workspace 5', 'exec-and-forget ~/.config/aerospace/move-window.sh 5']
-    ctrl-shift-6 = ['move-node-to-workspace 6', 'exec-and-forget ~/.config/aerospace/move-window.sh 6']
-    ctrl-shift-7 = ['move-node-to-workspace 7', 'exec-and-forget ~/.config/aerospace/move-window.sh 7']
-    ctrl-shift-8 = ['move-node-to-workspace 8', 'exec-and-forget ~/.config/aerospace/move-window.sh 8']
-    ctrl-shift-9 = ['move-node-to-workspace 9', 'exec-and-forget ~/.config/aerospace/move-window.sh 9']
+    # --- Move window to workspace: fn + shift + number ---
+    alt-cmd-shift-1 = ['move-node-to-workspace 1', 'exec-and-forget ~/.config/aerospace/move-window.sh 1']
+    alt-cmd-shift-2 = ['move-node-to-workspace 2', 'exec-and-forget ~/.config/aerospace/move-window.sh 2']
+    alt-cmd-shift-3 = ['move-node-to-workspace 3', 'exec-and-forget ~/.config/aerospace/move-window.sh 3']
+    alt-cmd-shift-4 = ['move-node-to-workspace 4', 'exec-and-forget ~/.config/aerospace/move-window.sh 4']
+    alt-cmd-shift-5 = ['move-node-to-workspace 5', 'exec-and-forget ~/.config/aerospace/move-window.sh 5']
+    alt-cmd-shift-6 = ['move-node-to-workspace 6', 'exec-and-forget ~/.config/aerospace/move-window.sh 6']
+    alt-cmd-shift-7 = ['move-node-to-workspace 7', 'exec-and-forget ~/.config/aerospace/move-window.sh 7']
+    alt-cmd-shift-8 = ['move-node-to-workspace 8', 'exec-and-forget ~/.config/aerospace/move-window.sh 8']
+    alt-cmd-shift-9 = ['move-node-to-workspace 9', 'exec-and-forget ~/.config/aerospace/move-window.sh 9']
 
     # --- Quick switch ---
-    ctrl-tab = 'workspace-back-and-forth'
-    ctrl-shift-tab = 'move-workspace-to-monitor --wrap-around next'
+    alt-cmd-tab = 'workspace-back-and-forth'
+    alt-cmd-shift-tab = 'move-workspace-to-monitor --wrap-around next'
 
-    # --- Launch apps: ctrl + key ---
-    ctrl-b = 'exec-and-forget /Users/wyoung5/.config/aerospace/launch-safari.sh'
-    ctrl-o = 'exec-and-forget /Users/wyoung5/.config/aerospace/launch-obsidian.sh'
-    ctrl-t = 'exec-and-forget /Users/wyoung5/.config/aerospace/launch-terminal.sh'
+    # --- Launch apps: fn + key ---
+    alt-cmd-b = 'exec-and-forget $HOME/.config/aerospace/launch-app.sh Safari'
+    alt-cmd-o = 'exec-and-forget $HOME/.config/aerospace/launch-app.sh Obsidian'
+    alt-cmd-t = 'exec-and-forget $HOME/.config/aerospace/launch-app.sh Ghostty'
 
-    # --- Service mode (ctrl+shift+;) ---
-    ctrl-shift-semicolon = 'mode service'
+    # --- Service mode (fn+shift+;) ---
+    alt-cmd-shift-semicolon = 'mode service'
 
 [mode.service.binding]
     esc = ['reload-config', 'mode main']
     r = ['flatten-workspace-tree', 'mode main']
     f = ['layout floating tiling', 'mode main']
     backspace = ['close-all-windows-but-current', 'mode main']
-    ctrl-shift-h = ['join-with left', 'mode main']
-    ctrl-shift-j = ['join-with down', 'mode main']
-    ctrl-shift-k = ['join-with up', 'mode main']
-    ctrl-shift-l = ['join-with right', 'mode main']
+    alt-cmd-shift-h = ['join-with left', 'mode main']
+    alt-cmd-shift-j = ['join-with down', 'mode main']
+    alt-cmd-shift-k = ['join-with up', 'mode main']
+    alt-cmd-shift-l = ['join-with right', 'mode main']
 ```
 
 ### Launch Scripts
 
 Create `~/.config/aerospace/` and save these scripts. `chmod +x` each one.
 
-#### launch-safari.sh
-```bash
-#!/bin/bash
-# Always open a new Safari window on the current workspace
-if pgrep -x Safari > /dev/null; then
-    osascript -e 'tell application "Safari" to make new document'
-else
-    open -a Safari
-fi
-```
+#### launch-app.sh
+Generic launcher — takes an app name as `$1`. Opens a new window if the app is already running (activates it first so the menu click works even cross-workspace, then moves the new window back). Falls back to `open -a` if the app isn't running or has no windows.
 
-#### launch-terminal.sh
 ```bash
 #!/bin/bash
-# Always open a new Ghostty window on the current workspace
-if pgrep -x ghostty > /dev/null; then
-    osascript -e 'tell application "System Events" to tell process "Ghostty" to click menu item "New Window" of menu "File" of menu bar 1'
-else
-    open -a Ghostty
-fi
-```
+# Generic launcher: open a new window if the app is running, otherwise launch it.
+# Usage: launch-app.sh <AppName>  (e.g., Safari, Obsidian, Ghostty)
+app="$1"
+current_ws=$(aerospace list-workspaces --focused)
 
-#### launch-obsidian.sh
-```bash
-#!/bin/bash
-# Always open a new Obsidian window on the current workspace
-if pgrep -x Obsidian > /dev/null; then
-    osascript -e 'tell application "System Events" to tell process "Obsidian" to click menu item "New window" of menu "File" of menu bar 1'
+if pgrep -xi "$app" > /dev/null; then
+    window_count=$(osascript -e "tell application \"System Events\" to return count of windows of process \"$app\"" 2>/dev/null)
+    if [ "${window_count:-0}" -gt 0 ]; then
+        osascript -e "
+            tell application \"$app\" to activate
+            delay 0.3
+            tell application \"System Events\" to tell process \"$app\"
+                try
+                    click menu item \"New Window\" of menu \"File\" of menu bar 1
+                on error
+                    click menu item \"New window\" of menu \"File\" of menu bar 1
+                end try
+            end tell
+        "
+        sleep 0.5
+        aerospace move-node-to-workspace "$current_ws"
+        aerospace workspace "$current_ws"
+    else
+        open -a "$app"
+    fi
 else
-    open -a Obsidian
+    open -a "$app"
 fi
 ```
 
@@ -176,7 +178,7 @@ if [ -z "$(aerospace list-windows --workspace focused)" ]; then
   aerospace workspace "$TARGET"
 fi
 AEROSPACE_FOCUSED_WORKSPACE="$(aerospace list-workspaces --focused)" \
-  /Users/wyoung5/.config/sketchybar/plugins/aerospace_batch.sh
+  $HOME/.config/sketchybar/plugins/aerospace_batch.sh
 ```
 
 #### close-window.sh
@@ -189,56 +191,56 @@ if [ -z "$(aerospace list-windows --workspace focused)" ]; then
   aerospace workspace-back-and-forth
 fi
 AEROSPACE_FOCUSED_WORKSPACE="$(aerospace list-workspaces --focused)" \
-  /Users/wyoung5/.config/sketchybar/plugins/aerospace_batch.sh
+  $HOME/.config/sketchybar/plugins/aerospace_batch.sh
 ```
 
 ### Key Shortcuts
 
-All shortcuts use `ctrl` as the base modifier. Add `shift` to move instead of focus.
+All shortcuts use `fn` as the base modifier (mapped via Karabiner-Elements to `cmd+option`, which AeroSpace binds as `alt-cmd-*`). Add `shift` to move instead of focus.
 
 **Navigate**
 | Action | Shortcut |
 |--------|----------|
-| Focus left | `ctrl + left` |
-| Focus down | `ctrl + down` |
-| Focus up | `ctrl + up` |
-| Focus right | `ctrl + right` |
+| Focus left | `fn + left` |
+| Focus down | `fn + down` |
+| Focus up | `fn + up` |
+| Focus right | `fn + right` |
 
 **Move Windows**
 | Action | Shortcut |
 |--------|----------|
-| Move left | `ctrl + shift + left` |
-| Move down | `ctrl + shift + down` |
-| Move up | `ctrl + shift + up` |
-| Move right | `ctrl + shift + right` |
-| Move to workspace N | `ctrl + shift + 1-9` |
+| Move left | `fn + shift + left` |
+| Move down | `fn + shift + down` |
+| Move up | `fn + shift + up` |
+| Move right | `fn + shift + right` |
+| Move to workspace N | `fn + shift + 1-9` |
 
 **Workspaces**
 | Action | Shortcut |
 |--------|----------|
-| Switch to workspace N | `ctrl + 1-9` |
-| Toggle last workspace | `ctrl + tab` |
-| Move workspace to monitor | `ctrl + shift + tab` |
+| Switch to workspace N | `fn + 1-9` |
+| Toggle last workspace | `fn + tab` |
+| Move workspace to monitor | `fn + shift + tab` |
 
 **Launch Apps**
 | Action | Shortcut |
 |--------|----------|
-| Safari (current workspace) | `ctrl + b` |
-| Obsidian (current workspace) | `ctrl + o` |
-| Terminal (current workspace) | `ctrl + t` |
+| Safari (new window) | `fn + b` |
+| Obsidian (new window) | `fn + o` |
+| Ghostty (new window) | `fn + t` |
 
 **Layout & Resize**
 | Action | Shortcut |
 |--------|----------|
-| Toggle tiles direction | `ctrl + /` |
-| Toggle accordion | `ctrl + ,` |
-| Close window | `ctrl + q` |
-| Fullscreen | `ctrl + f` |
-| Minimize | `ctrl + m` |
-| Grow | `ctrl + =` |
-| Shrink | `ctrl + -` |
+| Toggle tiles direction | `fn + /` |
+| Toggle accordion | `fn + ,` |
+| Close window | `fn + q` |
+| Fullscreen | `fn + f` |
+| Minimize (auto-leaves empty workspace) | `fn + m` |
+| Grow | `fn + =` |
+| Shrink | `fn + -` |
 
-**Service Mode** (`ctrl + shift + ;` to enter)
+**Service Mode** (`fn + shift + ;` to enter)
 | Key | Action |
 |-----|--------|
 | `r` | Reset/flatten layout |
@@ -301,6 +303,7 @@ Save to `~/.config/sketchybar/sketchybarrc` and `chmod +x` it.
 
 ```bash
 PLUGIN_DIR="$CONFIG_DIR/plugins"
+FONT="JetBrainsMono Nerd Font Mono"
 
 ##### Tokyo Night Storm Theme #####
 BAR_COLOR=0xff24283b
@@ -322,8 +325,8 @@ sketchybar --bar position=top \
 default=(
   padding_left=5
   padding_right=5
-  icon.font="JetBrainsMono Nerd Font Mono:Bold:20.0"
-  label.font="JetBrainsMono Nerd Font Mono:Regular:13.0"
+  icon.font="$FONT:Bold:20.0"
+  label.font="$FONT:Regular:13.0"
   icon.color=$ICON_COLOR
   label.color=$LABEL_COLOR
   icon.padding_left=4
@@ -338,7 +341,7 @@ for sid in 1 2 3 4 5; do
   sketchybar --add item workspace."$sid" left \
              --set workspace."$sid" \
                    icon="$sid" \
-                   icon.font="JetBrainsMono Nerd Font Mono:Bold:14.0" \
+                   icon.font="$FONT:Bold:14.0" \
                    icon.color=$DIM \
                    icon.highlight_color=$ICON_COLOR \
                    icon.padding_left=8 \
@@ -657,24 +660,24 @@ fi
 
 if pgrep -x svpn > /dev/null 2>&1; then
   # VPN is connected — click Disconnect
-  osascript -e '
-    tell application "System Events"
-      tell process "BIG-IP Edge Client"
+  osascript -e "
+    tell application \"System Events\"
+      tell process \"$APP\"
         click menu bar item 1 of menu bar 2
         delay 0.3
-        click menu item "Disconnect" of menu 1 of menu bar item 1 of menu bar 2
+        click menu item \"Disconnect\" of menu 1 of menu bar item 1 of menu bar 2
       end tell
-    end tell'
+    end tell"
 else
   # VPN is disconnected — click Connect
-  osascript -e '
-    tell application "System Events"
-      tell process "BIG-IP Edge Client"
+  osascript -e "
+    tell application \"System Events\"
+      tell process \"$APP\"
         click menu bar item 1 of menu bar 2
         delay 0.3
-        click menu item "Connect" of menu 1 of menu bar item 1 of menu bar 2
+        click menu item \"Connect\" of menu 1 of menu bar item 1 of menu bar 2
       end tell
-    end tell'
+    end tell"
 fi
 ```
 

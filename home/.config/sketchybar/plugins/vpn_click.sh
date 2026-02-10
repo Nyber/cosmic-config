@@ -12,22 +12,22 @@ fi
 
 if pgrep -x svpn > /dev/null 2>&1; then
   # VPN is connected — click Disconnect
-  osascript -e '
-    tell application "System Events"
-      tell process "BIG-IP Edge Client"
+  osascript -e "
+    tell application \"System Events\"
+      tell process \"$APP\"
         click menu bar item 1 of menu bar 2
         delay 0.3
-        click menu item "Disconnect" of menu 1 of menu bar item 1 of menu bar 2
+        click menu item \"Disconnect\" of menu 1 of menu bar item 1 of menu bar 2
       end tell
-    end tell'
+    end tell"
 else
   # VPN is disconnected — click Connect
-  osascript -e '
-    tell application "System Events"
-      tell process "BIG-IP Edge Client"
+  osascript -e "
+    tell application \"System Events\"
+      tell process \"$APP\"
         click menu bar item 1 of menu bar 2
         delay 0.3
-        click menu item "Connect" of menu 1 of menu bar item 1 of menu bar 2
+        click menu item \"Connect\" of menu 1 of menu bar item 1 of menu bar 2
       end tell
-    end tell'
+    end tell"
 fi

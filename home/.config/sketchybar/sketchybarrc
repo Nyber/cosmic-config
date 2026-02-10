@@ -1,4 +1,5 @@
 PLUGIN_DIR="$CONFIG_DIR/plugins"
+FONT="JetBrainsMono Nerd Font Mono"
 
 ##### Tokyo Night Storm Theme #####
 BAR_COLOR=0xff24283b
@@ -20,8 +21,8 @@ sketchybar --bar position=top \
 default=(
   padding_left=5
   padding_right=5
-  icon.font="JetBrainsMono Nerd Font Mono:Bold:20.0"
-  label.font="JetBrainsMono Nerd Font Mono:Regular:13.0"
+  icon.font="$FONT:Bold:20.0"
+  label.font="$FONT:Regular:13.0"
   icon.color=$ICON_COLOR
   label.color=$LABEL_COLOR
   icon.padding_left=4
@@ -43,7 +44,7 @@ for sid in 1 2 3 4 5; do
   sketchybar --add item workspace."$sid" left \
              --set workspace."$sid" \
                    icon="$sid" \
-                   icon.font="JetBrainsMono Nerd Font Mono:Bold:14.0" \
+                   icon.font="$FONT:Bold:14.0" \
                    icon.color=$DIM \
                    icon.highlight_color=$ICON_COLOR \
                    icon.padding_left=8 \
