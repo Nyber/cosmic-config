@@ -20,7 +20,7 @@ exec-on-workspace-change = ['/bin/bash', '-c', '~/.config/aerospace/workspace-ch
 [key-mapping]
     preset = 'qwerty'
 
-# 5px gaps between windows only, no edge padding
+# 5px gaps between windows, 2px edge padding for border visibility
 [gaps]
     inner.horizontal = 5
     inner.vertical =   5
@@ -48,7 +48,7 @@ exec-on-workspace-change = ['/bin/bash', '-c', '~/.config/aerospace/workspace-ch
     alt-cmd-comma = 'layout accordion horizontal vertical'
     alt-cmd-f     = 'fullscreen'
     alt-cmd-m     = ['exec-and-forget $HOME/.config/aerospace/close-window.sh', 'macos-native-minimize']
-    alt-cmd-q     = ['close', 'exec-and-forget $HOME/.config/aerospace/close-window.sh']
+    alt-cmd-q     = 'exec-and-forget osascript -e "tell application (path to frontmost application as text) to quit" ; sleep 0.5 ; $HOME/.config/aerospace/close-window.sh'
 
     # --- Resize ---
     alt-cmd-equal = 'resize smart +50'

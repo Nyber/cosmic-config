@@ -59,6 +59,7 @@ dotfiles/
 │       │   ├── icons.lua               # SF Symbols + NerdFont icons
 │       │   ├── settings.lua            # Font, padding config
 │       │   ├── items/                  # Bar items
+│       │   │   ├── init.lua            # Loads all item modules
 │       │   │   ├── apple.lua           # Apple menu popup (Apps, App Store, power)
 │       │   │   ├── menus.lua           # App menu items
 │       │   │   ├── spaces.lua          # AeroSpace workspace indicators
@@ -66,18 +67,20 @@ dotfiles/
 │       │   │   ├── calendar.lua        # Date/time
 │       │   │   ├── media.lua           # Now playing
 │       │   │   └── widgets/            # Right-side widgets
+│       │   │       ├── init.lua        # Loads all widget modules
 │       │   │       ├── battery.lua
 │       │   │       ├── volume.lua      # Volume + audio device picker
 │       │   │       ├── screenshot.lua
 │       │   │       ├── vpn.lua         # F5 BIG-IP toggle
-│       │   │       ├── wifi.lua        # Network speed
-│       │   │       └── cpu.lua         # CPU graph
 │       │   └── helpers/                # C helpers + SbarLua loader
 │       │       ├── init.lua            # Loads SbarLua + builds C helpers
+│       │       ├── makefile            # Builds C helpers
+│       │       ├── .gitignore          # Ignores compiled binaries
 │       │       ├── app_icons.lua       # App → icon mapping
 │       │       ├── vpn_toggle.sh       # VPN connect/disconnect
-│       │       ├── menus/              # Native menu bar access (C)
-│       │       └── event_providers/    # cpu_load, network_load (C)
+│       │       └── menus/              # Native menu bar access (C)
+│       │           ├── makefile
+│       │           └── menus.c
 │       └── yazi/                       # File manager
 │           ├── keymap.toml
 │           └── theme.toml
@@ -102,7 +105,7 @@ Karabiner-Elements maps `fn` to `cmd+option`, so AeroSpace binds `alt-cmd-*` but
 | `fn + shift + tab` | Move workspace to next monitor |
 | `fn + f` | Fullscreen |
 | `fn + m` | Minimize |
-| `fn + q` | Close window |
+| `fn + q` | Quit app |
 | `fn + /` | Toggle tiles layout |
 | `fn + ,` | Toggle accordion layout |
 | `fn + =` / `fn + -` | Resize |
@@ -115,7 +118,7 @@ Karabiner-Elements maps `fn` to `cmd+option`, so AeroSpace binds `alt-cmd-*` but
 
 | Key | Action |
 |-----|--------|
-| `esc` | Reload config |
+| `esc` | Reload config & exit service mode |
 | `r` | Flatten workspace tree |
 | `f` | Toggle floating |
 | `backspace` | Close all windows but current |
