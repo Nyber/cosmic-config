@@ -1,9 +1,11 @@
 local colors = require("colors")
 local settings = require("settings")
 
+sbar.add("event", "network_change", "com.apple.system.config.network_change")
+sbar.add("event", "vpn_change")
+
 local vpn = sbar.add("item", "widgets.vpn", {
   position = "right",
-  update_freq = 5,
   icon = {
     string = "󰌿",
     color = colors.grey,
@@ -15,7 +17,7 @@ local vpn = sbar.add("item", "widgets.vpn", {
   label = { drawing = false },
 })
 
-vpn:subscribe({ "routine", "forced" }, function()
+vpn:subscribe({ "network_change", "vpn_change", "system_woke", "forced" }, function()
   sbar.exec("pgrep -x svpn", function(result)
     local connected = result ~= ""
     vpn:set({
