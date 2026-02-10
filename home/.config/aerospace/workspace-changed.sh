@@ -7,9 +7,8 @@ sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE="$AEROSPACE_FO
 
 # Hide/unhide Zoom based on whether it's on the focused workspace
 if pgrep -xq "zoom.us"; then
-    if aerospace list-windows --workspace focused 2>/dev/null | grep -q "zoom.us"; then
-        osascript -e 'tell application "System Events" to set visible of process "zoom.us" to true' 2>/dev/null
-    else
-        osascript -e 'tell application "System Events" to set visible of process "zoom.us" to false' 2>/dev/null
-    fi
+    case "$(aerospace list-windows --workspace focused --format '%{app-name}' 2>/dev/null)" in
+        *zoom.us*) vis=true ;; *) vis=false ;;
+    esac
+    osascript -e "tell application \"System Events\" to set visible of process \"zoom.us\" to $vis" 2>/dev/null
 fi

@@ -77,39 +77,53 @@ local space_window_observer = sbar.add("item", {
   updates = true,
 })
 
-local function update_space_icons()
-  sbar.exec("aerospace list-workspaces --focused", function(focused_ws)
-    focused_ws = focused_ws:gsub("%s+", "")
-    for i = 1, 5, 1 do
-      sbar.exec(
-        "aerospace list-windows --workspace " .. i .. " --format '%{app-name}'",
-        function(result)
-          local icon_line = ""
-          local has_app = false
-          local seen = {}
-          for app in result:gmatch("[^\r\n]+") do
-            if not seen[app] then
-              seen[app] = true
-              has_app = true
-              local lookup = app_icons[app]
-              local icon = ((lookup == nil) and app_icons["Default"] or lookup)
-              icon_line = icon_line .. icon
-            end
+local function update_space_icons(env)
+  sbar.exec("aerospace list-windows --all --format '%{workspace}|%{app-name}'", function(result)
+    local apply = function(focused_ws)
+      focused_ws = focused_ws:gsub("%s+", "")
+
+      -- Group apps by workspace
+      local ws_apps = {}
+      for i = 1, 5 do ws_apps[i] = {} end
+      for line in result:gmatch("[^\r\n]+") do
+        local ws, app = line:match("^(%d+)|(.+)$")
+        if ws and app then
+          local n = tonumber(ws)
+          if n and n >= 1 and n <= 5 then
+            ws_apps[n][app] = true
           end
-
-          local is_focused = focused_ws == tostring(i)
-          local visible = has_app or is_focused
-
-          sbar.animate("tanh", 10, function()
-            spaces[i]:set({
-              drawing = visible,
-              label = has_app and icon_line or "",
-            })
-          end)
-          space_brackets[i]:set({ drawing = visible })
-          space_paddings[i]:set({ drawing = visible })
         end
-      )
+      end
+
+      for i = 1, 5 do
+        local icon_line = ""
+        local has_app = false
+        for app, _ in pairs(ws_apps[i]) do
+          has_app = true
+          local lookup = app_icons[app]
+          local icon = ((lookup == nil) and app_icons["Default"] or lookup)
+          icon_line = icon_line .. icon
+        end
+
+        local is_focused = focused_ws == tostring(i)
+        local visible = has_app or is_focused
+
+        sbar.animate("tanh", 10, function()
+          spaces[i]:set({
+            drawing = visible,
+            label = has_app and icon_line or "",
+          })
+        end)
+        space_brackets[i]:set({ drawing = visible })
+        space_paddings[i]:set({ drawing = visible })
+      end
+    end
+
+    -- Use env workspace when available (workspace change events), otherwise query
+    if env and env.FOCUSED_WORKSPACE and env.FOCUSED_WORKSPACE ~= "" then
+      apply(env.FOCUSED_WORKSPACE)
+    else
+      sbar.exec("aerospace list-workspaces --focused", apply)
     end
   end)
 end

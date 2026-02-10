@@ -5,9 +5,11 @@
 
 PREV_FILE=$(mktemp)
 CURR_FILE=$(mktemp)
+MDIR="$HOME/.config/aerospace"
 trap 'rm -f "$PREV_FILE" "$CURR_FILE"' EXIT
 
 : > "$PREV_FILE"
+CLEANUP=0
 
 while true; do
   aerospace list-windows --all --format '%{window-id} %{workspace}' > "$CURR_FILE"
@@ -16,13 +18,13 @@ while true; do
   # PREV is already NULL-filtered, so workspaces are always valid.
   awk 'NR==FNR {curr[$1]; next} !($1 in curr)' "$CURR_FILE" "$PREV_FILE" |
   while IFS=' ' read -r wid ws; do
-    echo "$ws" > "$HOME/.config/aerospace/.minimized-$wid"
+    echo "$ws" > "$MDIR/.minimized-$wid"
   done
 
   # Windows in curr that have a .minimized file → just restored
   while IFS=' ' read -r wid ws; do
     [ -z "$wid" ] && continue
-    mfile="$HOME/.config/aerospace/.minimized-$wid"
+    mfile="$MDIR/.minimized-$wid"
     if [ -f "$mfile" ]; then
       orig_ws=$(cat "$mfile")
       rm -f "$mfile"
@@ -34,7 +36,14 @@ while true; do
     fi
   done < "$CURR_FILE"
 
+  # Every ~60s, purge .minimized files older than 10 min (orphaned windows)
+  CLEANUP=$((CLEANUP + 1))
+  if [ "$CLEANUP" -ge 30 ]; then
+    CLEANUP=0
+    find "$MDIR" -name ".minimized-*" -mmin +10 -delete 2>/dev/null
+  fi
+
   # Save curr as prev, filtering NULL-WOKRSPACE transitional entries
   grep -v NULL "$CURR_FILE" > "$PREV_FILE"
-  sleep 0.5
+  sleep 2
 done
