@@ -2,11 +2,19 @@
 # Persistent daemon: detects minimized windows and restores them to their
 # original workspace when unminimized from the Dock.
 # Managed by LaunchAgent (com.aerospace.minimize-daemon).
+#
+# Adaptive polling: 2s when .minimized-* files exist, 15s when idle.
+# minimize-window.sh sends USR1 to wake from slow sleep immediately.
 
 PREV_FILE=$(mktemp)
 CURR_FILE=$(mktemp)
 MDIR="$HOME/.config/aerospace"
-trap 'rm -f "$PREV_FILE" "$CURR_FILE"' EXIT
+PIDFILE="$MDIR/.minimize-daemon.pid"
+FAST_POLLS=0
+
+echo $$ > "$PIDFILE"
+trap 'rm -f "$PREV_FILE" "$CURR_FILE" "$PIDFILE"' EXIT
+trap 'FAST_POLLS=3' USR1
 
 : > "$PREV_FILE"
 CLEANUP=0
@@ -45,5 +53,15 @@ while true; do
 
   # Save curr as prev, filtering NULL-WOKRSPACE transitional entries
   grep -v NULL "$CURR_FILE" > "$PREV_FILE"
-  sleep 2
+
+  # Adaptive sleep: fast after USR1 signal or when tracking minimized windows
+  if [ "$FAST_POLLS" -gt 0 ]; then
+    FAST_POLLS=$((FAST_POLLS - 1))
+    sleep 2
+  elif ls "$MDIR"/.minimized-* >/dev/null 2>&1; then
+    sleep 2
+  else
+    sleep 15 &
+    wait $!
+  fi
 done
