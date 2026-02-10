@@ -10,15 +10,20 @@ alias ll='eza -la --icons --group --links'
 # Yazi file manager
 alias browse='yazi'
 
+# Explicit key bindings (fallback if terminfo is missing)
+bindkey '^?' backward-delete-char
+bindkey '^H' backward-delete-char
+bindkey '^[[3~' delete-char
+
 # Starship prompt (global — per-user ~/.config/starship.toml overrides)
 [[ ! -f ~/.config/starship.toml ]] && export STARSHIP_CONFIG=/etc/starship.toml
 eval "$(starship init zsh)"
 
-# Plugins (guard autosuggestions — async PTY conflicts with sudo su)
+# Plugins (guard — async PTY conflicts with sudo su)
 if [[ -o login || -z "$SUDO_USER" ]]; then
   source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+  source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 fi
-source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
 # fzf
 source <(fzf --zsh)

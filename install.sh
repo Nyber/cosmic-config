@@ -168,6 +168,11 @@ sudo mkdir -p /etc/eza
 sudo cp "$DOTFILES/etc/eza/theme.yml" /etc/eza/theme.yml
 ok "/etc/eza/theme.yml"
 
+# Preserve Ghostty TERMINFO through sudo su (SIP blocks /usr/share/terminfo)
+echo 'Defaults env_keep += "TERMINFO"' | sudo tee /etc/sudoers.d/terminfo > /dev/null
+sudo chmod 440 /etc/sudoers.d/terminfo
+ok "/etc/sudoers.d/terminfo (env_keep TERMINFO)"
+
 # /etc/zshrc — append block
 install_block "$DOTFILES/etc/zshrc.append" /etc/zshrc
 
