@@ -59,7 +59,7 @@ dotfiles/
 │       │   ├── icons.lua               # SF Symbols + NerdFont icons
 │       │   ├── settings.lua            # Font, padding config
 │       │   ├── items/                  # Bar items
-│       │   │   ├── apple.lua           # Apple menu
+│       │   │   ├── apple.lua           # Apple menu popup (Apps, App Store, power)
 │       │   │   ├── menus.lua           # App menu items
 │       │   │   ├── spaces.lua          # AeroSpace workspace indicators
 │       │   │   ├── front_app.lua       # Active app name

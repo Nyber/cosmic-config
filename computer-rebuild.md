@@ -361,7 +361,7 @@ icons.lua             # SF Symbols + NerdFont icon maps
 settings.lua          # Font, padding, icon set selection
 items/
   init.lua            # Loads all items
-  apple.lua           # Apple menu (click opens native menus)
+  apple.lua           # Apple menu popup (About, Applications, App Store, power controls)
   menus.lua           # App menu items (swap with spaces on click)
   spaces.lua          # AeroSpace workspace indicators with app icons
   front_app.lua       # Active app name
@@ -390,6 +390,7 @@ On first run, `helpers/init.lua` runs `make` in the `helpers/` directory to comp
 - `topmost=on` renders SketchyBar above the macOS menu bar (see macOS Settings section for auto-hide fallback).
 - AeroSpace integration uses `sketchybar --trigger aerospace_workspace_change` events (not shell plugin scripts).
 - Workspace indicators show app icons via `sketchybar-app-font`; only non-empty or focused workspaces are visible.
+- Apple icon opens a custom popup menu replacing the native Apple menu — includes About This Mac, Applications (Spotlight Apps view), App Store, Force Quit, Sleep, Restart, Shut Down, Lock Screen, and Log Out.
 - Clicking the front app toggles between showing workspace indicators and native app menus.
 - Media widget shows now playing info for Spotify/Music with playback controls popup.
 - Volume widget includes a slider popup and audio device picker (via `switchaudio-osx`).
