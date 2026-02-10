@@ -14,12 +14,15 @@ Clone anywhere you like — the install script detects its own location.
 ## What it does
 
 1. Installs **Homebrew** (if missing)
-2. Runs **`brew bundle`** — all packages, casks, and fonts from `Brewfile`
-3. Starts **JankyBorders** and **SketchyBar** services
-4. **Symlinks** everything under `home/` into `~/` (backs up existing files to `~/.dotfiles-backup/`)
-5. Installs **system configs** into `/etc/` with marker-managed blocks (`# BEGIN/END dotfiles`)
-6. Clones **Yazi Tokyo Night** flavor
-7. Applies **macOS settings** (dark mode, Dock, Finder, key repeat, passwordless sudo, display sleep, auto-hide menu bar, Citrix `.ica` association)
+2. Installs **Xcode Command Line Tools** (if missing) — needed by SbarLua and SketchyBar C helpers
+3. Runs **`brew bundle`** — all packages, casks, and fonts from `Brewfile`
+4. Builds **SbarLua** — Lua bindings required by SketchyBar's config
+5. Starts **JankyBorders** and **SketchyBar** services
+6. **Symlinks** everything under `home/` into `~/` (backs up existing files to `~/.dotfiles-backup/`), plus `computer-rebuild.md` → `~/`
+7. Installs **system configs** into `/etc/` with marker-managed blocks (`# BEGIN/END dotfiles`)
+8. Clones **Yazi Tokyo Night** flavor
+9. Sets **desktop wallpaper**
+10. Applies **macOS settings** (dark mode, Dock, Finder, key repeat, passwordless sudo, display sleep, auto-hide menu bar, login screen, Citrix `.ica` association)
 
 The script is idempotent — safe to re-run.
 
@@ -29,36 +32,51 @@ The script is idempotent — safe to re-run.
 dotfiles/
 ├── install.sh                          # Single install script
 ├── Brewfile                            # Homebrew manifest
-├── computer-rebuild.md                 # Full setup reference
+├── computer-rebuild.md                 # Full setup reference (symlinked to ~/)
 ├── home/                               # Mirrors ~/ (symlinked)
 │   ├── .aerospace.toml                 # Tiling window manager config
 │   ├── .gitconfig
+│   ├── Pictures/
+│   │   └── tokyo-night-apple.png       # Desktop wallpaper
 │   └── .config/
 │       ├── aerospace/                  # Helper scripts
 │       │   ├── close-window.sh         # Auto-switch on empty workspace
-│       │   ├── move-window.sh          # Move window + switch workspace
-│       │   ├── launch-safari.sh
-│       │   ├── launch-obsidian.sh
-│       │   └── launch-terminal.sh
+│       │   ├── launch-app.sh           # Generic app launcher (new window)
+│       │   └── move-window.sh          # Move window + follow if empty
 │       ├── borders/bordersrc           # JankyBorders config
 │       ├── gh/config.yml               # GitHub CLI config
 │       ├── ghostty/config              # Terminal config
 │       ├── karabiner/                  # Keyboard remapping
 │       │   ├── generate-config.sh      # Generates karabiner.json from key list
 │       │   └── karabiner.json          # Generated — do not edit directly
-│       ├── sketchybar/                 # Status bar
-│       │   ├── sketchybarrc            # Main config
-│       │   └── plugins/
-│       │       ├── aerospace.sh        # Workspace indicator
-│       │       ├── aerospace_batch.sh  # Batch workspace updates
-│       │       ├── battery.sh
-│       │       ├── clock.sh
-│       │       ├── front_app.sh
-│       │       ├── volume.sh
-│       │       ├── vpn.sh
-│       │       ├── vpn_click.sh        # F5 VPN toggle (AppleScript)
-│       │       ├── power.sh            # Power menu trigger
-│       │       └── power_menu.swift    # Power menu UI
+│       ├── sketchybar/                 # Status bar (Lua config)
+│       │   ├── sketchybarrc            # Entrypoint
+│       │   ├── init.lua                # Loads bar, defaults, items
+│       │   ├── bar.lua                 # Bar appearance
+│       │   ├── colors.lua              # Tokyo Night palette
+│       │   ├── default.lua             # Default item styling
+│       │   ├── icons.lua               # SF Symbols + NerdFont icons
+│       │   ├── settings.lua            # Font, padding config
+│       │   ├── items/                  # Bar items
+│       │   │   ├── apple.lua           # Apple menu
+│       │   │   ├── menus.lua           # App menu items
+│       │   │   ├── spaces.lua          # AeroSpace workspace indicators
+│       │   │   ├── front_app.lua       # Active app name
+│       │   │   ├── calendar.lua        # Date/time
+│       │   │   ├── media.lua           # Now playing
+│       │   │   └── widgets/            # Right-side widgets
+│       │   │       ├── battery.lua
+│       │   │       ├── volume.lua      # Volume + audio device picker
+│       │   │       ├── screenshot.lua
+│       │   │       ├── vpn.lua         # F5 BIG-IP toggle
+│       │   │       ├── wifi.lua        # Network speed
+│       │   │       └── cpu.lua         # CPU graph
+│       │   └── helpers/                # C helpers + SbarLua loader
+│       │       ├── init.lua            # Loads SbarLua + builds C helpers
+│       │       ├── app_icons.lua       # App → icon mapping
+│       │       ├── vpn_toggle.sh       # VPN connect/disconnect
+│       │       ├── menus/              # Native menu bar access (C)
+│       │       └── event_providers/    # cpu_load, network_load (C)
 │       └── yazi/                       # File manager
 │           ├── keymap.toml
 │           └── theme.toml
