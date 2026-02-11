@@ -69,11 +69,14 @@ def list_notifications():
                 bundle_id = row["identifier"]
                 app = app_name_from_bundle(bundle_id)
 
+                subtitle = req.get("subt", "")
+
                 notifications.append({
                     "id": row["rec_id"],
                     "app": app,
                     "bundle_id": bundle_id,
                     "title": title,
+                    "subtitle": subtitle,
                     "body": body,
                 })
             except Exception:
@@ -86,7 +89,72 @@ def list_notifications():
         return []
 
 
+def get_notification_info(rec_id):
+    """Read notification data before dismissing."""
+    try:
+        conn = sqlite3.connect(f"file:{DB_PATH}?mode=ro", uri=True)
+        cur = conn.cursor()
+        cur.execute(
+            """
+            SELECT r.data, a.identifier
+            FROM record r JOIN app a ON r.app_id = a.app_id
+            WHERE r.rec_id = ?
+            """,
+            (int(rec_id),),
+        )
+        row = cur.fetchone()
+        conn.close()
+        if row:
+            plist = plistlib.loads(row[0])
+            req = plist.get("req", {})
+            return {
+                "bundle_id": row[1],
+                "title": req.get("titl", ""),
+                "subtitle": req.get("subt", ""),
+                "body": req.get("body", ""),
+            }
+    except Exception:
+        pass
+    return None
+
+
+def mark_mail_as_read(info):
+    """Mark matching Mail message as read via AppleScript."""
+    sender = info.get("title", "")
+    subject = info.get("subtitle", "") or info.get("body", "")
+    if not sender and not subject:
+        return
+    # Escape for AppleScript string literals
+    sender_esc = sender.replace("\\", "\\\\").replace('"', '\\"')
+    subject_esc = subject.replace("\\", "\\\\").replace('"', '\\"')
+    script = (
+        'tell application "Mail"\n'
+        "    set msgs to (every message of inbox whose "
+        f'sender contains "{sender_esc}" and '
+        f'subject contains "{subject_esc}" and '
+        "read status is false)\n"
+        "    repeat with m in msgs\n"
+        "        set read status of m to true\n"
+        "    end repeat\n"
+        "end tell"
+    )
+    try:
+        subprocess.run(["osascript", "-e", script], capture_output=True, timeout=5)
+    except Exception:
+        pass
+
+
 def dismiss(target):
+    # Mark as read in source app before deleting from DB
+    if target != "all":
+        info = get_notification_info(target)
+        if info and info["bundle_id"] == "com.apple.mail":
+            mark_mail_as_read(info)
+    else:
+        for notif in list_notifications():
+            if notif["bundle_id"] == "com.apple.mail":
+                mark_mail_as_read(notif)
+
     try:
         conn = sqlite3.connect(DB_PATH)
         cur = conn.cursor()
@@ -115,18 +183,21 @@ def watch():
     last_ids = set()
 
     while True:
-        notifications = list_notifications()
-        current_ids = {n["id"] for n in notifications}
+        try:
+            notifications = list_notifications()
+            current_ids = {n["id"] for n in notifications}
 
-        if current_ids != last_ids:
-            last_ids = current_ids
-            write_cache(notifications)
-            subprocess.run(
-                ["sketchybar", "--trigger", "wal_changed"], capture_output=True
-            )
-            interval = MIN_INTERVAL  # Reset to fast polling on change
-        else:
-            interval = min(interval + 1, MAX_INTERVAL)  # Back off when idle
+            if current_ids != last_ids:
+                last_ids = current_ids
+                write_cache(notifications)
+                subprocess.run(
+                    ["sketchybar", "--trigger", "wal_changed"], capture_output=True
+                )
+                interval = MIN_INTERVAL  # Reset to fast polling on change
+            else:
+                interval = min(interval + 1, MAX_INTERVAL)  # Back off when idle
+        except Exception:
+            interval = MAX_INTERVAL
 
         time.sleep(interval)
 

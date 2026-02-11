@@ -93,8 +93,8 @@ local icons = {
   },
 }
 
-if not (settings.icons == "NerdFont") then
-  return icons.sf_symbols
-else
+if settings.icons == "NerdFont" then
   return icons.nerdfont
+else
+  return icons.sf_symbols
 end

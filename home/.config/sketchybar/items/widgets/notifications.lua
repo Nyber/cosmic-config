@@ -328,5 +328,6 @@ sbar.add("item", "widgets.notifications.padding", {
   width = settings.group_paddings,
 })
 
--- Launch persistent DB poller
-sbar.exec(notif_script .. " watch")
+-- Watcher is managed by launchd (com.user.notif-watcher), not SketchyBar.
+-- On forced/system_woke, just refresh the cache as a fallback sync.
+bell:subscribe({"forced", "system_woke"}, refresh_from_cache)
