@@ -108,7 +108,9 @@ def write_cache(notifications):
 
 def watch():
     """Poll notification DB for changes and update cache + trigger SketchyBar."""
-    POLL_INTERVAL = 2  # seconds between DB checks
+    MIN_INTERVAL = 2
+    MAX_INTERVAL = 15
+    interval = MIN_INTERVAL
 
     last_ids = set()
 
@@ -122,8 +124,11 @@ def watch():
             subprocess.run(
                 ["sketchybar", "--trigger", "wal_changed"], capture_output=True
             )
+            interval = MIN_INTERVAL  # Reset to fast polling on change
+        else:
+            interval = min(interval + 1, MAX_INTERVAL)  # Back off when idle
 
-        time.sleep(POLL_INTERVAL)
+        time.sleep(interval)
 
 
 def main():
