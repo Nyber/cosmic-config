@@ -306,5 +306,10 @@ else
     skip "Profile picture not found"
 fi
 
+# Suppress native notification banners (bell widget handles these)
+echo "  → Suppressing notification banners (bell widget handles these)"
+/usr/bin/python3 "$HOME/.config/sketchybar/helpers/suppress_banners.py"
+ok "Notification banners suppressed"
+
 # ---------------------------------------------------------------------------
 info "Done! You may need to log out/restart for some changes to take effect."

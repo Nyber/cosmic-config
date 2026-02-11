@@ -5,18 +5,23 @@ Usage:
   notification_reader.py              # list notifications (JSON to stdout + cache)
   notification_reader.py dismiss ID   # dismiss notification by rec_id
   notification_reader.py dismiss all  # dismiss all notifications
+  notification_reader.py watch        # watch WAL via kqueue, update cache on change
 """
 import json
 import os
 import plistlib
 import pwd
+import select
 import sqlite3
+import subprocess
 import sys
+import time
 
 _user_home = pwd.getpwuid(os.getuid()).pw_dir
 DB_PATH = os.path.join(
     _user_home, "Library/Group Containers/group.com.apple.usernoted/db2/db"
 )
+WAL_PATH = DB_PATH + "-wal"
 CACHE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Map bundle IDs to display names (must match app_icons.lua keys)
@@ -103,7 +108,52 @@ def write_cache(notifications):
         json.dump(notifications, f)
 
 
+def watch():
+    """Watch WAL file via kqueue. On change: debounce, read DB, write cache, trigger event."""
+    # Initial read on startup
+    notifications = list_notifications()
+    write_cache(notifications)
+    subprocess.run(["sketchybar", "--trigger", "wal_changed"], capture_output=True)
+
+    kq = select.kqueue()
+
+    while True:
+        # Open WAL file (may not exist yet if DB has no pending writes)
+        fd = None
+        while fd is None:
+            try:
+                fd = os.open(WAL_PATH, os.O_RDONLY)
+            except FileNotFoundError:
+                time.sleep(1)
+
+        ev = select.kevent(
+            fd,
+            filter=select.KQ_FILTER_VNODE,
+            flags=select.KQ_EV_ADD | select.KQ_EV_CLEAR,
+            fflags=select.KQ_NOTE_WRITE | select.KQ_NOTE_EXTEND,
+        )
+
+        try:
+            while True:
+                kq.control([ev], 1)  # blocks until WAL is written
+                time.sleep(0.5)  # debounce rapid writes
+                notifications = list_notifications()
+                write_cache(notifications)
+                subprocess.run(
+                    ["sketchybar", "--trigger", "wal_changed"], capture_output=True
+                )
+        except OSError:
+            # WAL file gone (checkpoint truncated it) — close and re-open
+            pass
+        finally:
+            os.close(fd)
+
+
 def main():
+    if len(sys.argv) >= 2 and sys.argv[1] == "watch":
+        watch()
+        return
+
     if len(sys.argv) >= 3 and sys.argv[1] == "dismiss":
         dismiss(sys.argv[2])
         # Refresh cache after dismiss

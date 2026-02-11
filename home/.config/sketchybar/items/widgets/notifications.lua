@@ -9,6 +9,8 @@ local CHAR_WIDTH = 8.0
 local ICON_PAD = 42   -- app icon width + padding
 local SIDE_PAD = 20   -- popup side padding
 
+sbar.add("event", "wal_changed")
+
 local bell = sbar.add("item", "widgets.notifications", {
   position = "right",
   icon = {
@@ -27,20 +29,13 @@ local bell = sbar.add("item", "widgets.notifications", {
   },
   drawing = false,
   updates = true,
-  update_freq = 5,
   popup = { align = "center" },
 })
 
-local notif_script = "/usr/bin/python3 /Users/"
-    .. os.getenv("USER")
-    .. "/.config/sketchybar/helpers/notification_reader.py"
-local notif_cache = "/Users/"
-    .. os.getenv("USER")
-    .. "/.config/sketchybar/helpers/.notif_cache.json"
-
-local wal_path = "/Users/" .. os.getenv("USER")
-    .. "/Library/Group Containers/group.com.apple.usernoted/db2/db-wal"
-local last_wal_size = -1
+local helpers_dir = "/Users/" .. os.getenv("USER") .. "/.config/sketchybar/helpers"
+local notif_script = "/usr/bin/python3 " .. helpers_dir .. "/notification_reader.py"
+local suppress_script = "/usr/bin/python3 " .. helpers_dir .. "/suppress_banners.py"
+local notif_cache = helpers_dir .. "/.notif_cache.json"
 
 -- Track created popup items for cleanup
 local popup_items = {}
@@ -110,18 +105,11 @@ local function build_popup_items(badged_notifs)
     -- Dismiss handler for this notification
     local function on_dismiss()
       sbar.exec(notif_script .. " dismiss " .. rec_id, function()
-        -- Re-read cache after dismiss and refresh immediately
         local remaining = read_notifs()
         update_bell(#remaining)
         build_popup_items(remaining)
         if #remaining > 0 then
           bell:set({ popup = { drawing = true } })
-        end
-        -- Update WAL size to prevent redundant rebuild on next routine tick
-        local wf = io.open(wal_path, "rb")
-        if wf then
-          last_wal_size = wf:seek("end")
-          wf:close()
         end
       end)
     end
@@ -210,38 +198,25 @@ local function build_popup_items(badged_notifs)
       local remaining = read_notifs()
       update_bell(#remaining)
       build_popup_items(remaining)
-      -- Update WAL size to prevent redundant rebuild on next routine tick
-      local wf = io.open(wal_path, "rb")
-      if wf then
-        last_wal_size = wf:seek("end")
-        wf:close()
-      end
     end)
   end)
 end
 
--- Full refresh: run reader script, update cache, rebuild popup
-local function rebuild_popup()
-  sbar.exec(notif_script, function()
-    local notifs = read_notifs()
-    update_bell(#notifs)
-    build_popup_items(notifs)
-  end)
+-- Refresh from cache (called when Python watcher triggers wal_changed)
+local function refresh_from_cache()
+  local notifs = read_notifs()
+  update_bell(#notifs)
+  build_popup_items(notifs)
 end
 
-bell:subscribe("routine", function()
-  local f = io.open(wal_path, "rb")
-  if not f then return end
-  local size = f:seek("end")
-  f:close()
-  if size ~= last_wal_size then
-    last_wal_size = size
-    rebuild_popup()
-  end
+bell:subscribe("wal_changed", function()
+  refresh_from_cache()
 end)
 
 bell:subscribe("badge_update", function()
-  rebuild_popup()
+  sbar.exec(notif_script, function()
+    refresh_from_cache()
+  end)
 end)
 
 bell:subscribe("mouse.clicked", function()
@@ -261,5 +236,8 @@ sbar.add("item", "widgets.notifications.padding", {
   width = settings.group_paddings,
 })
 
--- Initial refresh on startup
-rebuild_popup()
+-- Suppress native banners (catches newly installed apps)
+sbar.exec(suppress_script)
+
+-- Launch persistent kqueue watcher (handles initial read + ongoing detection)
+sbar.exec(notif_script .. " watch")
