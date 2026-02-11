@@ -51,11 +51,12 @@ while true; do
     find "$MDIR" -name ".minimized-*" -mmin +10 -delete 2>/dev/null
   fi
 
-  # Save curr as prev, filtering NULL-WORKSPACE transitional entries
-  grep -v NULL "$CURR_FILE" > "$PREV_FILE"
-
-  # Trigger badge check for workspace attention indicators
-  sketchybar --trigger badge_check
+  # Save curr as prev, triggering badge check only if window list changed
+  grep -v NULL "$CURR_FILE" > "$PREV_FILE.new"
+  if ! cmp -s "$PREV_FILE" "$PREV_FILE.new"; then
+    sketchybar --trigger badge_check
+  fi
+  mv "$PREV_FILE.new" "$PREV_FILE"
 
   # Adaptive sleep: fast after USR1 signal or when tracking minimized windows
   if [ "$FAST_POLLS" -gt 0 ]; then

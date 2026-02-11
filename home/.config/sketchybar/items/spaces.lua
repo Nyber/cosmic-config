@@ -3,6 +3,24 @@ local icons = require("icons")
 local settings = require("settings")
 local app_icons = require("helpers.app_icons")
 local badge_data = require("helpers.badge_data")
+local json = require("helpers.json")
+
+local notif_cache = "/Users/" .. os.getenv("USER") .. "/.config/sketchybar/helpers/.notif_cache.json"
+
+local function get_notified_apps()
+  local f = io.open(notif_cache, "r")
+  if not f then return {} end
+  local result = f:read("*a")
+  f:close()
+  if not result or result == "" then return {} end
+  local ok, notifications = pcall(json.decode, result)
+  if not ok or type(notifications) ~= "table" then return {} end
+  local apps = {}
+  for _, n in ipairs(notifications) do
+    if n.app then apps[n.app] = true end
+  end
+  return apps
+end
 
 local spaces = {}
 local space_badges = {}
@@ -117,6 +135,11 @@ local function check_badges(ws_apps)
       end
       remaining = remaining - 1
       if remaining == 0 then
+        -- Only badge apps that also have a notification in the bell
+        local notified = get_notified_apps()
+        for a in pairs(badged_counts) do
+          if not notified[a] then badged_counts[a] = nil end
+        end
         -- Update shared badge_data
         badge_data.counts = badged_counts
         badge_data.by_workspace = {}
@@ -261,16 +284,20 @@ space_window_observer:subscribe("aerospace_workspace_change", update_space_icons
 space_window_observer:subscribe("front_app_switched", update_space_icons)
 space_window_observer:subscribe("space_windows_change", update_space_icons)
 
+local last_badge_check_time = 0
 space_window_observer:subscribe("badge_check", function()
+  local now = os.time()
+  if now - last_badge_check_time < 2 then return end
+  last_badge_check_time = now
   if last_ws_apps then
     check_badges(last_ws_apps)
   end
 end)
 
--- Poll for badge changes every 15 seconds
+-- Poll for badge changes every 30 seconds (workspace/app-switch events also trigger checks)
 local badge_poller = sbar.add("item", {
   drawing = false,
-  update_freq = 15,
+  update_freq = 30,
 })
 
 badge_poller:subscribe("routine", function()

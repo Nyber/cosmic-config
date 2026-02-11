@@ -171,7 +171,11 @@ AXUIElementRef ax_get_extra_menu_item(char* alias) {
                                             &position_ref        );
         AXUIElementCopyAttributeValue(item, kAXSizeAttribute,
                                             &size_ref        );
-        if (!position_ref || !size_ref) continue;
+        if (!position_ref || !size_ref) {
+          if (position_ref) CFRelease(position_ref);
+          if (size_ref) CFRelease(size_ref);
+          continue;
+        }
 
         CGPoint position = CGPointZero;
         AXValueGetValue(position_ref, kAXValueCGPointType, &position);
@@ -179,13 +183,15 @@ AXUIElementRef ax_get_extra_menu_item(char* alias) {
         AXValueGetValue(size_ref, kAXValueCGSizeType, &size);
         CFRelease(position_ref);
         CFRelease(size_ref);
-        if (error == kAXErrorSuccess
-            && fabs(position.x - bounds.origin.x) <= 10) {
+        if (fabs(position.x - bounds.origin.x) <= 10) {
           result = item;
+          CFRetain(result);
           break;
         }
       }
+      CFRelease(children_ref);
     }
+    CFRelease(extras);
   }
 
   CFRelease(app);

@@ -22,13 +22,25 @@ local function decode_string(s, i)
       elseif esc == 't' then parts[#parts + 1] = '\t'
       elseif esc == 'r' then parts[#parts + 1] = '\r'
       elseif esc == 'u' then
-        -- basic \uXXXX — skip surrogate handling, just insert replacement
         local hex = s:sub(i + 1, i + 4)
         local code = tonumber(hex, 16)
-        if code and code < 128 then
-          parts[#parts + 1] = string.char(code)
-        else
-          parts[#parts + 1] = "?"
+        if code then
+          if code < 0x80 then
+            parts[#parts + 1] = string.char(code)
+          elseif code < 0x800 then
+            parts[#parts + 1] = string.char(
+              0xC0 + math.floor(code / 64),
+              0x80 + (code % 64)
+            )
+          elseif code >= 0xD800 and code <= 0xDFFF then
+            parts[#parts + 1] = "\xEF\xBF\xBD" -- U+FFFD for surrogates
+          else
+            parts[#parts + 1] = string.char(
+              0xE0 + math.floor(code / 4096),
+              0x80 + math.floor((code % 4096) / 64),
+              0x80 + (code % 64)
+            )
+          end
         end
         i = i + 4
       end
