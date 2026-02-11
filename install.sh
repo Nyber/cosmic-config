@@ -57,8 +57,10 @@ fi
 # ---------------------------------------------------------------------------
 # 3. Start services
 # ---------------------------------------------------------------------------
+BREW_SERVICES="$(brew services list)"
+
 info "Starting JankyBorders service"
-if brew services list | grep -q 'borders.*started'; then
+if echo "$BREW_SERVICES" | grep -q 'borders.*started'; then
     ok "JankyBorders already running"
 else
     brew services start felixkratz/formulae/borders
@@ -66,7 +68,7 @@ else
 fi
 
 info "Starting SketchyBar service"
-if brew services list | grep -q 'sketchybar.*started'; then
+if echo "$BREW_SERVICES" | grep -q 'sketchybar.*started'; then
     ok "SketchyBar already running"
 else
     brew services start sketchybar
@@ -195,9 +197,16 @@ fi
 # 6.5. Wallpaper
 # ---------------------------------------------------------------------------
 info "Setting wallpaper"
-if [[ -f "$HOME/Pictures/tokyo-night-apple.png" ]]; then
-    osascript -e 'tell application "System Events" to tell every desktop to set picture to POSIX file "'"$HOME/Pictures/tokyo-night-apple.png"'"' 2>/dev/null || true
-    ok "Desktop wallpaper set"
+WALLPAPER="$HOME/Pictures/tokyo-night-apple.png"
+if [[ -f "$WALLPAPER" ]]; then
+    WALLPAPER_REAL="$(readlink -f "$WALLPAPER" 2>/dev/null || echo "$WALLPAPER")"
+    CURRENT_WALLPAPER="$(osascript -e 'tell application "System Events" to get picture of desktop 1' 2>/dev/null || true)"
+    if [[ "$CURRENT_WALLPAPER" == "$WALLPAPER" || "$CURRENT_WALLPAPER" == "$WALLPAPER_REAL" ]]; then
+        ok "Desktop wallpaper already set"
+    else
+        osascript -e 'tell application "System Events" to tell every desktop to set picture to POSIX file "'"$WALLPAPER"'"' 2>/dev/null || true
+        ok "Desktop wallpaper set"
+    fi
 else
     skip "Wallpaper image not found"
 fi
@@ -242,6 +251,8 @@ defaults write NSGlobalDomain NSQuitAlwaysKeepsWindows -bool false
 ok "Don't restore windows on relaunch"
 
 # Finder
+FINDER_CHANGED=false
+[[ "$(defaults read com.apple.finder AppleShowAllFiles 2>/dev/null)" != "1" ]] && FINDER_CHANGED=true
 defaults write com.apple.finder AppleShowAllFiles -bool true
 defaults write NSGlobalDomain AppleShowAllExtensions -bool true
 defaults write com.apple.finder ShowPathbar -bool true
@@ -250,8 +261,12 @@ defaults write com.apple.finder FXPreferredViewStyle -string "Nlsv"
 defaults write com.apple.finder _FXShowPosixPathInTitle -bool true
 defaults write com.apple.finder _FXSortFoldersFirst -bool true
 defaults write com.apple.finder FXDefaultSearchScope -string "SCcf"
-killall Finder 2>/dev/null || true
-ok "Finder: hidden files, extensions, path/status bar, list view, folders first"
+if $FINDER_CHANGED; then
+    killall Finder 2>/dev/null || true
+    ok "Finder: hidden files, extensions, path/status bar, list view, folders first"
+else
+    ok "Finder: already configured"
+fi
 
 # Dark mode
 defaults write NSGlobalDomain AppleInterfaceStyle -string "Dark"
@@ -272,6 +287,9 @@ defaults write com.apple.Accessibility KeyRepeatEnabled -bool true
 ok "Fast key repeat"
 
 # Dock
+DOCK_CHANGED=false
+[[ "$(defaults read com.apple.dock autohide 2>/dev/null)" != "1" ]] && DOCK_CHANGED=true
+[[ "$(defaults read com.apple.dock tilesize 2>/dev/null)" != "43" ]] && DOCK_CHANGED=true
 defaults write com.apple.dock autohide -bool true
 defaults write com.apple.dock tilesize -int 43
 defaults write com.apple.dock show-recents -bool false
@@ -279,25 +297,35 @@ defaults write com.apple.dock persistent-apps -array
 defaults write com.apple.dock persistent-others -array
 defaults write com.apple.dock wvous-br-corner -int 14
 defaults write com.apple.dock wvous-br-modifier -int 0
-killall Dock 2>/dev/null || true
-ok "Dock: autohide, small icons, stripped apps, Quick Note hot corner"
+if $DOCK_CHANGED; then
+    killall Dock 2>/dev/null || true
+    ok "Dock: autohide, small icons, stripped apps, Quick Note hot corner"
+else
+    ok "Dock: already configured"
+fi
 
 
 # Do Not Disturb — 24/7 schedule (SketchyBar bell widget handles notifications)
 DND_CONFIG="$HOME/Library/DoNotDisturb/DB/ModeConfigurations.json"
 if [[ -f "$DND_CONFIG" ]]; then
-    python3 -c "
+    DND_RESULT="$(python3 -c "
 import json, time, sys
 with open(sys.argv[1]) as f:
     data = json.load(f)
 mode = data['data'][0]['modeConfigurations']['com.apple.donotdisturb.mode.default']
 triggers = mode['triggers']['triggers']
-# Find existing schedule trigger or create one
 sched = None
 for t in triggers:
     if t.get('class') == 'DNDModeConfigurationScheduleTrigger':
         sched = t
         break
+if (sched and sched.get('enabledSetting') == 2
+    and sched.get('timePeriodStartTimeHour') == 0
+    and sched.get('timePeriodEndTimeHour') == 23
+    and sched.get('timePeriodEndTimeMinute') == 59
+    and sched.get('timePeriodWeekdays') == 127):
+    print('ok')
+    sys.exit(0)
 if sched is None:
     sched = {'class': 'DNDModeConfigurationScheduleTrigger', 'creationDate': time.time() - 978307200, 'timePeriodWeekdays': 127}
     triggers.append(sched)
@@ -312,9 +340,14 @@ mode['lastModified'] = now
 data['header']['timestamp'] = now
 with open(sys.argv[1], 'w') as f:
     json.dump(data, f)
-" "$DND_CONFIG"
-    killall -HUP donotdisturbd 2>/dev/null || true
-    ok "Do Not Disturb 24/7 schedule (bell widget handles notifications)"
+print('changed')
+" "$DND_CONFIG")"
+    if [[ "$DND_RESULT" == "changed" ]]; then
+        killall -HUP donotdisturbd 2>/dev/null || true
+        ok "Do Not Disturb 24/7 schedule (bell widget handles notifications)"
+    else
+        ok "Do Not Disturb already configured"
+    fi
 else
     skip "DND config not found (enable manually: System Settings → Focus → DND → Schedule 24/7)"
 fi

@@ -226,35 +226,34 @@ local space_window_observer = sbar.add("item", {
 
 local function update_space_icons(env)
   sbar.exec("aerospace list-windows --all --format '%{workspace}|%{app-name}'", function(result)
-    local apply = function(focused_ws)
-      focused_ws = focused_ws:gsub("%s+", "")
-      local ws_apps = parse_window_list(result)
+    -- Use env, or fall back to cached focused_workspace (avoids extra subprocess)
+    local focused_ws
+    if env and env.FOCUSED_WORKSPACE and env.FOCUSED_WORKSPACE ~= "" then
+      focused_ws = env.FOCUSED_WORKSPACE:gsub("%s+", "")
+    else
+      focused_ws = tostring(focused_workspace)
+    end
 
-      for i = 1, 5 do
-        local has_app = false
-        for _, _ in pairs(ws_apps[i]) do
-          has_app = true
-          break
-        end
+    local ws_apps = parse_window_list(result)
 
-        local is_focused = focused_ws == tostring(i)
-        local visible = has_app or is_focused
-
-        sbar.animate("tanh", 10, function()
-          spaces[i]:set({ drawing = visible })
-        end)
-        space_brackets[i]:set({ drawing = visible })
-        space_paddings[i]:set({ drawing = visible })
+    for i = 1, 5 do
+      local has_app = false
+      for _, _ in pairs(ws_apps[i]) do
+        has_app = true
+        break
       end
 
-      check_badges(ws_apps)
+      local is_focused = focused_ws == tostring(i)
+      local visible = has_app or is_focused
+
+      sbar.animate("tanh", 10, function()
+        spaces[i]:set({ drawing = visible })
+      end)
+      space_brackets[i]:set({ drawing = visible })
+      space_paddings[i]:set({ drawing = visible })
     end
 
-    if env and env.FOCUSED_WORKSPACE and env.FOCUSED_WORKSPACE ~= "" then
-      apply(env.FOCUSED_WORKSPACE)
-    else
-      sbar.exec("aerospace list-workspaces --focused", apply)
-    end
+    check_badges(ws_apps)
   end)
 end
 
@@ -263,15 +262,15 @@ space_window_observer:subscribe("front_app_switched", update_space_icons)
 space_window_observer:subscribe("space_windows_change", update_space_icons)
 
 space_window_observer:subscribe("badge_check", function()
-  sbar.exec("aerospace list-windows --all --format '%{workspace}|%{app-name}'", function(result)
-    check_badges(parse_window_list(result))
-  end)
+  if last_ws_apps then
+    check_badges(last_ws_apps)
+  end
 end)
 
--- Poll for badge changes every 5 seconds
+-- Poll for badge changes every 15 seconds
 local badge_poller = sbar.add("item", {
   drawing = false,
-  update_freq = 5,
+  update_freq = 15,
 })
 
 badge_poller:subscribe("routine", function()
