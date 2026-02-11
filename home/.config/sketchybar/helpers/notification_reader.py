@@ -191,7 +191,9 @@ def watch():
                 last_ids = current_ids
                 write_cache(notifications)
                 subprocess.run(
-                    ["sketchybar", "--trigger", "wal_changed"], capture_output=True
+                    ["sketchybar", "--trigger", "wal_changed",
+                     "--trigger", "badge_check"],
+                    capture_output=True,
                 )
                 interval = MIN_INTERVAL  # Reset to fast polling on change
             else:
