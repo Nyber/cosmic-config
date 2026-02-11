@@ -960,16 +960,13 @@ Show name/password fields instead of user list (hides user accounts):
 sudo defaults write /Library/Preferences/com.apple.loginwindow SHOWFULLNAME -bool true
 ```
 
-Profile picture (penguin for both accounts):
+Profile picture (Tokyo Night Apple crop — `~/Pictures/profile.jpg`, symlinked from dotfiles):
 ```bash
-# Convert to JPEG (dsimport needs JPEG, not HEIC)
-sips -s format jpeg "/Library/User Pictures/Animals/Penguin.heic" --out /tmp/penguin.jpg
-
 # Embed image data via dsimport (dscl Picture path alone doesn't work on modern macOS)
-printf '0x0A 0x5C 0x3A 0x2C dsRecTypeStandard:Users 2 dsAttrTypeStandard:RecordName externalbinary:dsAttrTypeStandard:JPEGPhoto\nwyoung5:/tmp/penguin.jpg\n' > /tmp/wyoung5_pic.dsimport
+printf '0x0A 0x5C 0x3A 0x2C dsRecTypeStandard:Users 2 dsAttrTypeStandard:RecordName externalbinary:dsAttrTypeStandard:JPEGPhoto\nwyoung5:%s\n' "$HOME/Pictures/profile.jpg" > /tmp/wyoung5_pic.dsimport
 sudo dsimport /tmp/wyoung5_pic.dsimport /Local/Default M
 
-printf '0x0A 0x5C 0x3A 0x2C dsRecTypeStandard:Users 2 dsAttrTypeStandard:RecordName externalbinary:dsAttrTypeStandard:JPEGPhoto\nwyoung:/tmp/penguin.jpg\n' > /tmp/wyoung_pic.dsimport
+printf '0x0A 0x5C 0x3A 0x2C dsRecTypeStandard:Users 2 dsAttrTypeStandard:RecordName externalbinary:dsAttrTypeStandard:JPEGPhoto\nwyoung:%s\n' "$HOME/Pictures/profile.jpg" > /tmp/wyoung_pic.dsimport
 sudo dsimport /tmp/wyoung_pic.dsimport /Local/Default M
 ```
 

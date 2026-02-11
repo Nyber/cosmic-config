@@ -294,16 +294,16 @@ fi
 sudo defaults write /Library/Preferences/com.apple.loginwindow SHOWFULLNAME -bool true
 ok "Login screen: name/password fields"
 
-# Login screen profile picture (penguin)
-if [[ -f "/Library/User Pictures/Animals/Penguin.heic" ]]; then
-    sips -s format jpeg "/Library/User Pictures/Animals/Penguin.heic" --out /tmp/penguin.jpg >/dev/null 2>&1
+# Login screen profile picture (Tokyo Night Apple)
+PROFILE_PIC="$HOME/Pictures/profile.jpg"
+if [[ -f "$PROFILE_PIC" ]]; then
     CURRENT_USER="$(whoami)"
-    printf '0x0A 0x5C 0x3A 0x2C dsRecTypeStandard:Users 2 dsAttrTypeStandard:RecordName externalbinary:dsAttrTypeStandard:JPEGPhoto\n%s:/tmp/penguin.jpg\n' "$CURRENT_USER" > /tmp/user_pic.dsimport
+    printf '0x0A 0x5C 0x3A 0x2C dsRecTypeStandard:Users 2 dsAttrTypeStandard:RecordName externalbinary:dsAttrTypeStandard:JPEGPhoto\n%s:%s\n' "$CURRENT_USER" "$PROFILE_PIC" > /tmp/user_pic.dsimport
     sudo dsimport /tmp/user_pic.dsimport /Local/Default M 2>/dev/null
-    rm -f /tmp/penguin.jpg /tmp/user_pic.dsimport
-    ok "Login screen profile picture (penguin)"
+    rm -f /tmp/user_pic.dsimport
+    ok "Login screen profile picture (Tokyo Night Apple)"
 else
-    skip "Penguin image not found"
+    skip "Profile picture not found"
 fi
 
 # ---------------------------------------------------------------------------
