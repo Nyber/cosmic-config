@@ -8,6 +8,7 @@ $git_status\
 $character"""
 
 palette = 'tokyo_night'
+command_timeout = 200
 
 [os]
 disabled = false
@@ -36,7 +37,6 @@ format = '[$symbol $branch]($style) '
 [git_status]
 style = "fg:orange"
 format = '[$all_status$ahead_behind]($style)'
-command_timeout = 200
 
 [cmd_duration]
 show_milliseconds = false
