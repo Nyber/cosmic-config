@@ -199,6 +199,18 @@ space_window_observer:subscribe("badge_check", function()
   end)
 end)
 
+-- Poll for badge changes every 5 seconds
+local badge_poller = sbar.add("item", {
+  drawing = false,
+  update_freq = 5,
+})
+
+badge_poller:subscribe("routine", function()
+  sbar.exec("aerospace list-windows --all --format '%{workspace}|%{app-name}'", function(result)
+    check_badges(parse_window_list(result))
+  end)
+end)
+
 -- Trigger initial workspace highlight
 sbar.exec("aerospace list-workspaces --focused", function(focused)
   focused = focused:gsub("%s+", "")
