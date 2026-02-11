@@ -55,7 +55,7 @@ while true; do
   grep -v NULL "$CURR_FILE" > "$PREV_FILE"
 
   # Trigger badge check for workspace attention indicators
-  sketchybar --trigger space_windows_change
+  sketchybar --trigger badge_check
 
   # Adaptive sleep: fast after USR1 signal or when tracking minimized windows
   if [ "$FAST_POLLS" -gt 0 ]; then
