@@ -66,7 +66,7 @@ dotfiles/
 │       │   │   ├── init.lua            # Loads all item modules
 │       │   │   ├── apple.lua           # Apple menu popup (Apps, App Store, power)
 │       │   │   ├── menus.lua           # App menu items
-│       │   │   ├── spaces.lua          # AeroSpace workspace indicators
+│       │   │   ├── spaces.lua          # AeroSpace workspace indicators + badge attention
 │       │   │   ├── front_app.lua       # Active app name
 │       │   │   ├── calendar.lua        # Date/time
 │       │   │   ├── media.lua           # Now playing

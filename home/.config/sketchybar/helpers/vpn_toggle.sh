@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Toggle F5 BIG-IP Edge Client VPN via its status bar menu
 

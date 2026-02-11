@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Generic launcher: open a new window if the app is running, otherwise launch it.
 # Usage: launch-app.sh <AppName>  (e.g., Safari, Obsidian, Ghostty)
 app="$1"
