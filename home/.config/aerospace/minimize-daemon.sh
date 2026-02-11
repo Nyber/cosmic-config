@@ -54,6 +54,9 @@ while true; do
   # Save curr as prev, filtering NULL-WOKRSPACE transitional entries
   grep -v NULL "$CURR_FILE" > "$PREV_FILE"
 
+  # Trigger badge check for workspace attention indicators
+  sketchybar --trigger space_windows_change
+
   # Adaptive sleep: fast after USR1 signal or when tracking minimized windows
   if [ "$FAST_POLLS" -gt 0 ]; then
     FAST_POLLS=$((FAST_POLLS - 1))

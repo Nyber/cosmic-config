@@ -9,6 +9,26 @@ local space_paddings = {}
 
 sbar.add("event", "aerospace_workspace_change")
 
+local focused_workspace = 0
+local attention = {}
+
+local function update_space_appearance(i)
+  local is_focused = (focused_workspace == i)
+  local has_attention = attention[i] or false
+
+  spaces[i]:set({
+    icon = { highlight = is_focused },
+    label = {
+      highlight = is_focused,
+      color = (not is_focused and has_attention) and colors.red or colors.blue,
+    },
+    background = { border_color = is_focused and colors.black or colors.bg2 }
+  })
+  space_brackets[i]:set({
+    background = { border_color = is_focused and colors.grey or colors.bg2 }
+  })
+end
+
 for i = 1, 5, 1 do
   local space = sbar.add("item", "space." .. i, {
     icon = {
@@ -55,15 +75,8 @@ for i = 1, 5, 1 do
   space_paddings[i] = space_padding
 
   space:subscribe("aerospace_workspace_change", function(env)
-    local focused = env.FOCUSED_WORKSPACE == tostring(i)
-    space:set({
-      icon = { highlight = focused },
-      label = { highlight = focused },
-      background = { border_color = focused and colors.black or colors.bg2 }
-    })
-    space_bracket:set({
-      background = { border_color = focused and colors.grey or colors.bg2 }
-    })
+    focused_workspace = tonumber(env.FOCUSED_WORKSPACE) or 0
+    update_space_appearance(i)
   end)
 
   space:subscribe("mouse.clicked", function(env)
@@ -125,6 +138,16 @@ local function update_space_icons(env)
     else
       sbar.exec("aerospace list-workspaces --focused", apply)
     end
+  end)
+
+  -- Check for dock badges (runs in parallel via async sbar.exec)
+  sbar.exec("$CONFIG_DIR/helpers/check_attention.sh", function(result)
+    for j = 1, 5 do attention[j] = false end
+    for ws in result:gmatch("%d+") do
+      local n = tonumber(ws)
+      if n and n >= 1 and n <= 5 then attention[n] = true end
+    end
+    for j = 1, 5 do update_space_appearance(j) end
   end)
 end
 
