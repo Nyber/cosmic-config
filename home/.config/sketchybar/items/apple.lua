@@ -8,8 +8,8 @@ sbar.add("item", { width = 5 })
 local apple = sbar.add("item", {
   icon = {
     font = {
-      family = "JetBrainsMono Nerd Font Mono",
-      style = "Regular",
+      family = settings.font.text,
+      style = settings.font.style_map["Regular"],
       size = 16.0
     },
     string = icons.apple,

@@ -76,7 +76,7 @@ exec-on-workspace-change = ['/bin/bash', '-c', '~/.config/aerospace/workspace-ch
     alt-cmd-comma = 'layout accordion horizontal vertical'
     alt-cmd-f     = 'fullscreen'
     alt-cmd-m     = 'exec-and-forget $HOME/.config/aerospace/minimize-window.sh'
-    alt-cmd-q     = 'exec-and-forget osascript -e "tell application (path to frontmost application as text) to quit" ; sleep 0.5 ; $HOME/.config/aerospace/close-window.sh'
+    alt-cmd-q     = ['close --quit-if-last-window', 'exec-and-forget $HOME/.config/aerospace/close-window.sh']
 
     # --- Resize ---
     alt-cmd-equal = 'resize smart +50'
@@ -455,7 +455,6 @@ Save to `~/.config/borders/bordersrc` and `chmod +x` it.
 options=(
 	style=round
 	width=7.0
-	hidpi=on
 	active_color=0xffc0caf5
 	inactive_color=0x00000000
 )
