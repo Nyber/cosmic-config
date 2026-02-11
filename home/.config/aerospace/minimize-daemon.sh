@@ -51,7 +51,7 @@ while true; do
     find "$MDIR" -name ".minimized-*" -mmin +10 -delete 2>/dev/null
   fi
 
-  # Save curr as prev, filtering NULL-WOKRSPACE transitional entries
+  # Save curr as prev, filtering NULL-WORKSPACE transitional entries
   grep -v NULL "$CURR_FILE" > "$PREV_FILE"
 
   # Trigger badge check for workspace attention indicators

@@ -111,13 +111,11 @@ local function volume_toggle_details(env)
     sbar.exec("SwitchAudioSource -t output -c", function(result)
       current_audio_device = result:sub(1, -2)
       sbar.exec("SwitchAudioSource -a -t output", function(available)
-        current = current_audio_device
-        local color = colors.grey
         local counter = 0
 
         for device in string.gmatch(available, '[^\r\n]+') do
           local color = colors.grey
-          if current == device then
+          if current_audio_device == device then
             color = colors.white
           end
           sbar.add("item", "volume.device." .. counter, {
