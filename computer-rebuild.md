@@ -948,6 +948,18 @@ defaults write com.apple.dock wvous-br-modifier -int 0
 killall Dock
 ```
 
+### Do Not Disturb (24/7 schedule)
+SketchyBar's bell widget reads notifications from the usernoted SQLite DB. Native notification banners are redundant. A 24/7 DND schedule suppresses banners/sounds while keeping the notification storage pipeline intact — `usernoted` still writes to its DB, and the bell widget reads from it normally.
+
+`install.sh` writes the schedule to `~/Library/DoNotDisturb/DB/ModeConfigurations.json` and signals `donotdisturbd` via `SIGHUP`. The schedule persists across reboots with no LaunchAgent needed.
+
+**What's suppressed:** banner popups, notification sounds, lock screen previews.
+**What still works:** usernoted DB storage, SketchyBar bell widget, app badge counts, all other system functionality.
+
+**Failed approaches:**
+- `launchctl disable com.apple.notificationcenterui.agent` — kills banners but breaks the notification delivery pipeline (notifications stop being stored)
+- `shortcuts run` via LaunchAgent — requires a manually-created Shortcut in Shortcuts.app (no programmatic creation: XPC service ignores SQLite inserts, `shortcuts sign` requires iCloud, unsigned `.shortcut` files aren't importable)
+
 ### Disable close/quit confirmations
 ```bash
 defaults write NSGlobalDomain NSCloseAlwaysConfirmsChanges -bool false

@@ -4,10 +4,10 @@ local settings = require("settings")
 local app_icons = require("helpers.app_icons")
 local json = require("helpers.json")
 
--- Approximate pixel width per character at size 13 monospace
 local CHAR_WIDTH = 8.0
-local ICON_PAD = 42   -- app icon width + padding
-local SIDE_PAD = 20   -- popup side padding
+local ICON_PAD = 42
+local SIDE_PAD = 20
+local MAX_VISIBLE = 5
 
 sbar.add("event", "wal_changed")
 
@@ -34,28 +34,102 @@ local bell = sbar.add("item", "widgets.notifications", {
 
 local helpers_dir = "/Users/" .. os.getenv("USER") .. "/.config/sketchybar/helpers"
 local notif_script = "/usr/bin/python3 " .. helpers_dir .. "/notification_reader.py"
-local suppress_script = "/usr/bin/python3 " .. helpers_dir .. "/suppress_banners.py"
 local notif_cache = helpers_dir .. "/.notif_cache.json"
 
--- Track created popup items for cleanup
-local popup_items = {}
+-- State
+local current_page = 0
+local cached_notifs = {}
 
--- Read cache file and return all notifications
+-- Pre-create all popup slots (never removed, just shown/hidden)
+local slots = {}
+for i = 1, MAX_VISIBLE do
+  local h = sbar.add("item", "widgets.notifications.slot." .. i .. ".h", {
+    position = "popup." .. bell.name,
+    drawing = false,
+    icon = {
+      font = "sketchybar-app-font:Regular:16.0",
+      color = colors.blue,
+      width = 28,
+      align = "center",
+    },
+    label = {
+      color = colors.white,
+      font = {
+        family = settings.font.text,
+        style = settings.font.style_map["Bold"],
+        size = 13.0,
+      },
+    },
+  })
+  local b = sbar.add("item", "widgets.notifications.slot." .. i .. ".b", {
+    position = "popup." .. bell.name,
+    drawing = false,
+    icon = { drawing = false },
+    label = {
+      color = colors.white,
+      padding_left = 38,
+      font = {
+        family = settings.font.text,
+        style = settings.font.style_map["Regular"],
+        size = 13.0,
+      },
+    },
+  })
+  slots[i] = { header = h, body = b }
+end
+
+local nav_item = sbar.add("item", "widgets.notifications.nav", {
+  position = "popup." .. bell.name,
+  drawing = false,
+  icon = { drawing = false },
+  label = {
+    color = colors.white,
+    align = "center",
+    font = {
+      family = settings.font.text,
+      style = settings.font.style_map["Bold"],
+      size = 13.0,
+    },
+  },
+  background = {
+    color = colors.bg2,
+    corner_radius = 5,
+    height = 24,
+  },
+})
+
+local clear_item = sbar.add("item", "widgets.notifications.clear", {
+  position = "popup." .. bell.name,
+  drawing = false,
+  icon = { drawing = false },
+  label = {
+    string = "Clear All",
+    color = colors.red,
+    align = "center",
+    font = {
+      family = settings.font.text,
+      style = settings.font.style_map["Bold"],
+      size = 13.0,
+    },
+  },
+  background = {
+    color = colors.bg2,
+    corner_radius = 5,
+    height = 24,
+  },
+})
+
 local function read_notifs()
   local f = io.open(notif_cache, "r")
   if not f then return {} end
   local result = f:read("*a")
   f:close()
-
   if not result or result == "" then return {} end
-
   local ok, notifications = pcall(json.decode, result)
   if not ok or type(notifications) ~= "table" then return {} end
-
   return notifications
 end
 
--- Update bell icon/count based on notification count
 local function update_bell(count)
   if count > 0 then
     bell:set({
@@ -73,140 +147,156 @@ local function update_bell(count)
   end
 end
 
--- Build popup items from badged notifications
-local function build_popup_items(badged_notifs)
-  -- Remove previously created popup items
-  for _, name in ipairs(popup_items) do
-    pcall(sbar.remove, name)
+-- Update popup slot content without removing/adding items
+local function update_popup()
+  local total = #cached_notifs
+  if total == 0 then
+    for i = 1, MAX_VISIBLE do
+      slots[i].header:set({ drawing = false })
+      slots[i].body:set({ drawing = false })
+    end
+    nav_item:set({ drawing = false })
+    clear_item:set({ drawing = false })
+    return
   end
-  popup_items = {}
 
-  if #badged_notifs == 0 then return end
+  local total_pages = math.ceil(total / MAX_VISIBLE)
+  if current_page >= total_pages then current_page = total_pages - 1 end
+  if current_page < 0 then current_page = 0 end
 
-  -- Compute auto-sized width
+  local start_idx = current_page * MAX_VISIBLE + 1
+  local end_idx = math.min(start_idx + MAX_VISIBLE - 1, total)
+
+  -- Compute popup width from all notifications
   local max_len = 0
-  for _, notif in ipairs(badged_notifs) do
-    local title_len = #(notif.title or "")
-    local body_len = #(notif.body or "")
-    if title_len > max_len then max_len = title_len end
-    if body_len > max_len then max_len = body_len end
+  for _, notif in ipairs(cached_notifs) do
+    local tl = #(notif.title or "")
+    local bl = #(notif.body or "")
+    if tl > max_len then max_len = tl end
+    if bl > max_len then max_len = bl end
   end
   local popup_width = math.floor(max_len * CHAR_WIDTH + ICON_PAD + SIDE_PAD)
   if popup_width < 300 then popup_width = 300 end
   if popup_width > 800 then popup_width = 800 end
 
-  for i, notif in ipairs(badged_notifs) do
-    local lookup = app_icons[notif.app]
-    local icon = ((lookup == nil) and app_icons["Default"] or lookup)
-    local title = notif.title or ""
-    local body = notif.body or ""
-    local rec_id = notif.id
+  -- Fill visible slots
+  for i = 1, MAX_VISIBLE do
+    local idx = start_idx + i - 1
+    if idx <= end_idx then
+      local notif = cached_notifs[idx]
+      local lookup = app_icons[notif.app]
+      local icon = (lookup == nil) and app_icons["Default"] or lookup
+      local title = notif.title or ""
+      local body = notif.body or ""
 
-    -- Dismiss handler for this notification
-    local function on_dismiss()
-      sbar.exec(notif_script .. " dismiss " .. rec_id, function()
-        local remaining = read_notifs()
-        update_bell(#remaining)
-        build_popup_items(remaining)
-        if #remaining > 0 then
-          bell:set({ popup = { drawing = true } })
-        end
-      end)
-    end
-
-    -- App icon + sender name + dismiss hint
-    local header_name = "widgets.notifications.app." .. i .. ".h"
-    local header = sbar.add("item", header_name, {
-      position = "popup." .. bell.name,
-      width = popup_width,
-      icon = {
-        string = icon,
-        font = "sketchybar-app-font:Regular:16.0",
-        color = colors.blue,
-        width = 28,
-        align = "center",
-      },
-      label = {
-        string = title .. "  ✕",
-        color = colors.white,
-        font = {
-          family = settings.font.text,
-          style = settings.font.style_map["Bold"],
-          size = 13.0,
-        },
-      },
-    })
-    popup_items[#popup_items + 1] = header_name
-
-    if rec_id then
-      header:subscribe("mouse.clicked", on_dismiss)
-    end
-
-    -- Message body
-    if body ~= "" then
-      local body_name = "widgets.notifications.app." .. i .. ".b"
-      local body_item = sbar.add("item", body_name, {
-        position = "popup." .. bell.name,
+      slots[i].header:set({
+        drawing = true,
         width = popup_width,
-        icon = { drawing = false },
-        label = {
-          string = body,
-          color = colors.white,
-          padding_left = 38,
-          font = {
-            family = settings.font.text,
-            style = settings.font.style_map["Regular"],
-            size = 13.0,
-          },
-        },
+        icon = { string = icon },
+        label = { string = title .. "  ✕" },
       })
-      popup_items[#popup_items + 1] = body_name
 
-      if rec_id then
-        body_item:subscribe("mouse.clicked", on_dismiss)
+      if body ~= "" then
+        slots[i].body:set({
+          drawing = true,
+          width = popup_width,
+          label = { string = body },
+        })
+      else
+        slots[i].body:set({ drawing = false })
       end
+    else
+      slots[i].header:set({ drawing = false })
+      slots[i].body:set({ drawing = false })
     end
   end
 
-  -- "Clear All" button
-  local clear_name = "widgets.notifications.app.clear"
-  local clear_btn = sbar.add("item", clear_name, {
-    position = "popup." .. bell.name,
-    width = popup_width,
-    icon = { drawing = false },
-    label = {
-      string = "Clear All",
-      color = colors.red,
-      align = "center",
-      font = {
-        family = settings.font.text,
-        style = settings.font.style_map["Bold"],
-        size = 13.0,
-      },
-    },
-    background = {
-      color = colors.bg2,
-      corner_radius = 5,
-      height = 24,
-    },
-  })
-  popup_items[#popup_items + 1] = clear_name
+  -- Nav row
+  if total_pages > 1 then
+    local up_arrow = current_page > 0 and "▲" or "△"
+    local down_arrow = current_page < total_pages - 1 and "▼" or "▽"
+    nav_item:set({
+      drawing = true,
+      width = popup_width,
+      label = { string = up_arrow .. "  " .. (current_page + 1) .. " / " .. total_pages .. "  " .. down_arrow },
+    })
+  else
+    nav_item:set({ drawing = false })
+  end
 
-  clear_btn:subscribe("mouse.clicked", function()
-    sbar.exec(notif_script .. " dismiss all", function()
-      bell:set({ popup = { drawing = false } })
-      local remaining = read_notifs()
-      update_bell(#remaining)
-      build_popup_items(remaining)
-    end)
+  clear_item:set({ drawing = true, width = popup_width })
+end
+
+-- Dismiss a notification by rec_id
+local function dismiss_notif(rec_id)
+  sbar.exec(notif_script .. " dismiss " .. rec_id, function()
+    cached_notifs = read_notifs()
+    update_bell(#cached_notifs)
+    update_popup()
+    if #cached_notifs > 0 then
+      bell:set({ popup = { drawing = true } })
+    end
   end)
 end
 
--- Refresh from cache (called when Python watcher triggers wal_changed)
+-- Scroll handler
+local function on_scroll(env)
+  local delta = tonumber(env.SCROLL_DELTA or 0)
+  if delta == 0 then return end
+  local total_pages = math.ceil(#cached_notifs / MAX_VISIBLE)
+  if delta > 0 and current_page > 0 then
+    current_page = current_page - 1
+    update_popup()
+  elseif delta < 0 and current_page < total_pages - 1 then
+    current_page = current_page + 1
+    update_popup()
+  end
+end
+
+-- Subscribe all slots to scroll and click
+for i = 1, MAX_VISIBLE do
+  slots[i].header:subscribe("mouse.scrolled", on_scroll)
+  slots[i].body:subscribe("mouse.scrolled", on_scroll)
+  -- Click on header/body dismisses (use closure to capture current index)
+  local function make_click_handler(slot_idx)
+    return function()
+      local idx = current_page * MAX_VISIBLE + slot_idx
+      if idx <= #cached_notifs then
+        local rec_id = cached_notifs[idx].id
+        if rec_id then dismiss_notif(rec_id) end
+      end
+    end
+  end
+  slots[i].header:subscribe("mouse.clicked", make_click_handler(i))
+  slots[i].body:subscribe("mouse.clicked", make_click_handler(i))
+end
+
+-- Nav click: cycle to next page
+nav_item:subscribe("mouse.clicked", function()
+  local total_pages = math.ceil(#cached_notifs / MAX_VISIBLE)
+  current_page = current_page + 1
+  if current_page >= total_pages then current_page = 0 end
+  update_popup()
+end)
+nav_item:subscribe("mouse.scrolled", on_scroll)
+
+-- Clear All click
+clear_item:subscribe("mouse.clicked", function()
+  sbar.exec(notif_script .. " dismiss all", function()
+    current_page = 0
+    bell:set({ popup = { drawing = false } })
+    cached_notifs = read_notifs()
+    update_bell(#cached_notifs)
+    update_popup()
+  end)
+end)
+clear_item:subscribe("mouse.scrolled", on_scroll)
+
+-- Refresh from cache
 local function refresh_from_cache()
-  local notifs = read_notifs()
-  update_bell(#notifs)
-  build_popup_items(notifs)
+  cached_notifs = read_notifs()
+  update_bell(#cached_notifs)
+  update_popup()
 end
 
 bell:subscribe("wal_changed", function()
@@ -220,6 +310,8 @@ bell:subscribe("badge_update", function()
 end)
 
 bell:subscribe("mouse.clicked", function()
+  current_page = 0
+  update_popup()
   bell:set({ popup = { drawing = "toggle" } })
 end)
 
@@ -236,8 +328,5 @@ sbar.add("item", "widgets.notifications.padding", {
   width = settings.group_paddings,
 })
 
--- Suppress native banners (catches newly installed apps)
-sbar.exec(suppress_script)
-
--- Launch persistent kqueue watcher (handles initial read + ongoing detection)
+-- Launch persistent DB poller
 sbar.exec(notif_script .. " watch")
