@@ -282,6 +282,43 @@ defaults write com.apple.dock wvous-br-modifier -int 0
 killall Dock 2>/dev/null || true
 ok "Dock: autohide, small icons, stripped apps, Quick Note hot corner"
 
+
+# Do Not Disturb — 24/7 schedule (SketchyBar bell widget handles notifications)
+DND_CONFIG="$HOME/Library/DoNotDisturb/DB/ModeConfigurations.json"
+if [[ -f "$DND_CONFIG" ]]; then
+    python3 -c "
+import json, time, sys
+with open(sys.argv[1]) as f:
+    data = json.load(f)
+mode = data['data'][0]['modeConfigurations']['com.apple.donotdisturb.mode.default']
+triggers = mode['triggers']['triggers']
+# Find existing schedule trigger or create one
+sched = None
+for t in triggers:
+    if t.get('class') == 'DNDModeConfigurationScheduleTrigger':
+        sched = t
+        break
+if sched is None:
+    sched = {'class': 'DNDModeConfigurationScheduleTrigger', 'creationDate': time.time() - 978307200, 'timePeriodWeekdays': 127}
+    triggers.append(sched)
+sched['enabledSetting'] = 2
+sched['timePeriodStartTimeHour'] = 0
+sched['timePeriodStartTimeMinute'] = 0
+sched['timePeriodEndTimeHour'] = 23
+sched['timePeriodEndTimeMinute'] = 59
+sched['timePeriodWeekdays'] = 127
+now = time.time() - 978307200
+mode['lastModified'] = now
+data['header']['timestamp'] = now
+with open(sys.argv[1], 'w') as f:
+    json.dump(data, f)
+" "$DND_CONFIG"
+    killall -HUP donotdisturbd 2>/dev/null || true
+    ok "Do Not Disturb 24/7 schedule (bell widget handles notifications)"
+else
+    skip "DND config not found (enable manually: System Settings → Focus → DND → Schedule 24/7)"
+fi
+
 # Citrix .ica file association
 if command -v duti &>/dev/null; then
     duti -s com.citrix.receiver.icaviewer.mac .ica all
@@ -305,11 +342,6 @@ if [[ -f "$PROFILE_PIC" ]]; then
 else
     skip "Profile picture not found"
 fi
-
-# Suppress native notification banners (bell widget handles these)
-echo "  → Suppressing notification banners (bell widget handles these)"
-/usr/bin/python3 "$HOME/.config/sketchybar/helpers/suppress_banners.py"
-ok "Notification banners suppressed"
 
 # ---------------------------------------------------------------------------
 info "Done! You may need to log out/restart for some changes to take effect."

@@ -11,7 +11,6 @@ import json
 import os
 import plistlib
 import pwd
-import select
 import sqlite3
 import subprocess
 import sys
@@ -21,7 +20,6 @@ _user_home = pwd.getpwuid(os.getuid()).pw_dir
 DB_PATH = os.path.join(
     _user_home, "Library/Group Containers/group.com.apple.usernoted/db2/db"
 )
-WAL_PATH = DB_PATH + "-wal"
 CACHE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Map bundle IDs to display names (must match app_icons.lua keys)
@@ -109,44 +107,23 @@ def write_cache(notifications):
 
 
 def watch():
-    """Watch WAL file via kqueue. On change: debounce, read DB, write cache, trigger event."""
-    # Initial read on startup
-    notifications = list_notifications()
-    write_cache(notifications)
-    subprocess.run(["sketchybar", "--trigger", "wal_changed"], capture_output=True)
+    """Poll notification DB for changes and update cache + trigger SketchyBar."""
+    POLL_INTERVAL = 2  # seconds between DB checks
 
-    kq = select.kqueue()
+    last_ids = set()
 
     while True:
-        # Open WAL file (may not exist yet if DB has no pending writes)
-        fd = None
-        while fd is None:
-            try:
-                fd = os.open(WAL_PATH, os.O_RDONLY)
-            except FileNotFoundError:
-                time.sleep(1)
+        notifications = list_notifications()
+        current_ids = {n["id"] for n in notifications}
 
-        ev = select.kevent(
-            fd,
-            filter=select.KQ_FILTER_VNODE,
-            flags=select.KQ_EV_ADD | select.KQ_EV_CLEAR,
-            fflags=select.KQ_NOTE_WRITE | select.KQ_NOTE_EXTEND,
-        )
+        if current_ids != last_ids:
+            last_ids = current_ids
+            write_cache(notifications)
+            subprocess.run(
+                ["sketchybar", "--trigger", "wal_changed"], capture_output=True
+            )
 
-        try:
-            while True:
-                kq.control([ev], 1)  # blocks until WAL is written
-                time.sleep(0.5)  # debounce rapid writes
-                notifications = list_notifications()
-                write_cache(notifications)
-                subprocess.run(
-                    ["sketchybar", "--trigger", "wal_changed"], capture_output=True
-                )
-        except OSError:
-            # WAL file gone (checkpoint truncated it) — close and re-open
-            pass
-        finally:
-            os.close(fd)
+        time.sleep(POLL_INTERVAL)
 
 
 def main():
