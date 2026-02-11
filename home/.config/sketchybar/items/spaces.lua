@@ -2,27 +2,25 @@ local colors = require("colors")
 local icons = require("icons")
 local settings = require("settings")
 local app_icons = require("helpers.app_icons")
+local badge_data = require("helpers.badge_data")
 
 local spaces = {}
+local space_badges = {}
 local space_brackets = {}
 local space_paddings = {}
 
 sbar.add("event", "aerospace_workspace_change")
 sbar.add("event", "badge_check")
+sbar.add("event", "badge_update")
 
 local focused_workspace = 0
-local attention = {}
 
 local function update_space_appearance(i)
   local is_focused = (focused_workspace == i)
-  local has_attention = attention[i] or false
 
   spaces[i]:set({
     icon = { highlight = is_focused },
-    label = {
-      highlight = is_focused,
-      color = (not is_focused and has_attention) and colors.red or colors.blue,
-    },
+    label = { highlight = is_focused },
     background = { border_color = is_focused and colors.black or colors.bg2 }
   })
   space_brackets[i]:set({
@@ -49,7 +47,44 @@ local function parse_window_list(result)
   return ws_apps
 end
 
+-- Cache for last known ws_apps so badge poll can split icons
+local last_ws_apps = nil
+
+local function update_badge_icons(ws_apps)
+  for i = 1, 5 do
+    local normal_icons = ""
+    local badge_icons = ""
+    local has_app = false
+    local has_badge = false
+
+    for app, _ in pairs(ws_apps[i]) do
+      has_app = true
+      local lookup = app_icons[app]
+      local icon = ((lookup == nil) and app_icons["Default"] or lookup)
+      if badge_data.counts[app] then
+        badge_icons = badge_icons .. icon
+        has_badge = true
+      else
+        normal_icons = normal_icons .. icon
+      end
+    end
+
+    spaces[i]:set({
+      label = {
+        string = has_app and normal_icons or "",
+        padding_right = has_badge and 0 or 20,
+      },
+    })
+    space_badges[i]:set({
+      label = { string = badge_icons },
+      drawing = has_badge,
+    })
+  end
+end
+
 local function check_badges(ws_apps)
+  last_ws_apps = ws_apps
+
   local unique_apps = {}
   for i = 1, 5 do
     for app in pairs(ws_apps[i]) do
@@ -63,26 +98,47 @@ local function check_badges(ws_apps)
   end
 
   if #app_list == 0 then
-    for j = 1, 5 do attention[j] = false end
+    badge_data.counts = {}
+    badge_data.by_workspace = {}
+    badge_data.total = 0
+    update_badge_icons(ws_apps)
     for j = 1, 5 do update_space_appearance(j) end
+    sbar.trigger("badge_update")
     return
   end
 
-  local badged = {}
+  local badged_counts = {}
   local remaining = #app_list
   for _, app in ipairs(app_list) do
     sbar.exec("lsappinfo info -only StatusLabel " .. shell_quote(app), function(sl)
       local label = sl:match('"label"="([^"]*)"')
-      if label and label ~= "" then badged[app] = true end
+      if label and label ~= "" then
+        badged_counts[app] = label
+      end
       remaining = remaining - 1
       if remaining == 0 then
-        for j = 1, 5 do attention[j] = false end
+        -- Update shared badge_data
+        badge_data.counts = badged_counts
+        badge_data.by_workspace = {}
+        badge_data.total = 0
         for j = 1, 5 do
+          badge_data.by_workspace[j] = {}
           for a in pairs(ws_apps[j]) do
-            if badged[a] then attention[j] = true; break end
+            if badged_counts[a] then
+              badge_data.by_workspace[j][#badge_data.by_workspace[j] + 1] = a
+              local n = tonumber(badged_counts[a])
+              if n then
+                badge_data.total = badge_data.total + n
+              else
+                badge_data.total = badge_data.total + 1
+              end
+            end
           end
         end
+
+        update_badge_icons(ws_apps)
         for j = 1, 5 do update_space_appearance(j) end
+        sbar.trigger("badge_update")
       end
     end)
   end
@@ -117,7 +173,26 @@ for i = 1, 5, 1 do
 
   spaces[i] = space
 
-  local space_bracket = sbar.add("bracket", { space.name }, {
+  local space_badge = sbar.add("item", "space." .. i .. ".badge", {
+    label = {
+      font = "sketchybar-app-font:Regular:16.0",
+      color = colors.red,
+      padding_left = 0,
+      padding_right = 20,
+      y_offset = -1,
+    },
+    padding_left = 0,
+    padding_right = 0,
+    background = {
+      color = colors.bg1,
+      border_width = 0,
+      height = 26,
+    },
+    drawing = false,
+  })
+  space_badges[i] = space_badge
+
+  local space_bracket = sbar.add("bracket", { space.name, space_badge.name }, {
     background = {
       color = colors.transparent,
       border_color = colors.bg2,
@@ -156,23 +231,17 @@ local function update_space_icons(env)
       local ws_apps = parse_window_list(result)
 
       for i = 1, 5 do
-        local icon_line = ""
         local has_app = false
-        for app, _ in pairs(ws_apps[i]) do
+        for _, _ in pairs(ws_apps[i]) do
           has_app = true
-          local lookup = app_icons[app]
-          local icon = ((lookup == nil) and app_icons["Default"] or lookup)
-          icon_line = icon_line .. icon
+          break
         end
 
         local is_focused = focused_ws == tostring(i)
         local visible = has_app or is_focused
 
         sbar.animate("tanh", 10, function()
-          spaces[i]:set({
-            drawing = visible,
-            label = has_app and icon_line or "",
-          })
+          spaces[i]:set({ drawing = visible })
         end)
         space_brackets[i]:set({ drawing = visible })
         space_paddings[i]:set({ drawing = visible })
