@@ -84,6 +84,7 @@ exec-on-workspace-change = ['/bin/bash', '-c', '~/.config/aerospace/workspace-ch
     alt-cmd-b = 'exec-and-forget $HOME/.config/aerospace/launch-app.sh Safari'
     alt-cmd-o = 'exec-and-forget $HOME/.config/aerospace/launch-app.sh Obsidian'
     alt-cmd-t = 'exec-and-forget $HOME/.config/aerospace/launch-app.sh Ghostty'
+    alt-cmd-s = 'exec-and-forget $HOME/.config/aerospace/launch-app.sh Signal'
     alt-cmd-z = 'exec-and-forget $HOME/.config/aerospace/launch-app.sh zoom.us'
 
     # --- Service mode (fn+shift+;) ---
