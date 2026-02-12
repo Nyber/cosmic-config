@@ -379,5 +379,22 @@ else
     skip "Profile picture not found"
 fi
 
+# Lock screen wallpaper (macOS can reset this on updates)
+WALLPAPER="$HOME/Pictures/tokyo-night-apple.png"
+if [[ -f "$WALLPAPER" ]]; then
+    USER_UUID="$(dscl . -read /Users/"$(whoami)" GeneratedUID 2>/dev/null | awk '{print $2}')"
+    LOCKSCREEN_DIR="/Library/Caches/Desktop Pictures/$USER_UUID"
+    if [[ -n "$USER_UUID" && -d "$LOCKSCREEN_DIR" ]]; then
+        sudo cp "$WALLPAPER" "$LOCKSCREEN_DIR/lockscreen.png"
+        sudo chown "$(whoami):_securityagent" "$LOCKSCREEN_DIR/lockscreen.png"
+        sudo chmod 644 "$LOCKSCREEN_DIR/lockscreen.png"
+        ok "Lock screen wallpaper"
+    else
+        skip "Lock screen cache directory not found"
+    fi
+else
+    skip "Wallpaper image not found"
+fi
+
 # ---------------------------------------------------------------------------
 info "Done! You may need to log out/restart for some changes to take effect."
