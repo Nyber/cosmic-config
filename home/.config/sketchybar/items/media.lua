@@ -84,6 +84,7 @@ local function animate_detail(detail)
 end
 
 media_cover:subscribe("media_change", function(env)
+  if not env.INFO then return end
   if whitelist[env.INFO.app] then
     local drawing = (env.INFO.state == "playing")
     media_artist:set({ drawing = drawing, label = env.INFO.artist, })
