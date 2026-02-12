@@ -6,9 +6,9 @@
     <string>com.user.notif-watcher</string>
     <key>ProgramArguments</key>
     <array>
-        <string>/usr/bin/python3</string>
-        <string>/Users/wyoung5/.config/sketchybar/helpers/notification_reader.py</string>
-        <string>watch</string>
+        <string>/bin/sh</string>
+        <string>-c</string>
+        <string>exec /usr/bin/python3 $HOME/.config/sketchybar/helpers/notification_reader.py watch</string>
     </array>
     <key>RunAtLoad</key>
     <true/>
