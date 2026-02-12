@@ -431,6 +431,7 @@ bash ~/.config/karabiner/generate-config.sh
 
 ### Notes
 - Karabiner's `fn` interception works at the HID level — it captures the key before macOS can use it for the emoji picker or function keys.
+- The fn emoji picker is also explicitly disabled: `defaults write com.apple.HIToolbox AppleFnUsageType -int 0`
 - The `"optional": ["any"]` modifier allows `fn+shift+key` combos to pass through as `cmd+option+shift+key` (used for AeroSpace move bindings).
 - Menu bar icon is hidden via `"show_in_menu_bar": false` in the config.
 
