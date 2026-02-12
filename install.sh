@@ -364,7 +364,7 @@ fi
 sudo defaults write /Library/Preferences/com.apple.loginwindow SHOWFULLNAME -bool true
 ok "Login screen: name/password fields"
 
-# Login screen profile picture (Tokyo Night Apple)
+# Login screen profile picture (Apple logo, Tokyo Night background)
 PROFILE_PIC="$HOME/Pictures/profile.jpg"
 if [[ -f "$PROFILE_PIC" ]]; then
     CURRENT_USER="$(whoami)"
@@ -374,7 +374,7 @@ if [[ -f "$PROFILE_PIC" ]]; then
     rm -f /tmp/user_pic.dsimport
     sudo dscl . -delete /Users/"$CURRENT_USER" Picture 2>/dev/null
     sudo dscl . -create /Users/"$CURRENT_USER" Picture "$PROFILE_PIC"
-    ok "Login screen profile picture (Tokyo Night Apple)"
+    ok "Login screen profile picture (Apple logo, Tokyo Night background)"
 else
     skip "Profile picture not found"
 fi
