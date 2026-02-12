@@ -111,6 +111,7 @@ exec-on-workspace-change = ['/bin/bash', '-c', '~/.config/aerospace/workspace-ch
     # --- Launch apps: fn + key ---
     alt-cmd-b = 'exec-and-forget $HOME/.config/aerospace/launch-app.sh Safari'
     alt-cmd-o = 'exec-and-forget $HOME/.config/aerospace/launch-app.sh Obsidian'
+    alt-cmd-s = 'exec-and-forget $HOME/.config/aerospace/launch-app.sh Signal'
     alt-cmd-t = 'exec-and-forget $HOME/.config/aerospace/launch-app.sh Ghostty'
     alt-cmd-z = 'exec-and-forget $HOME/.config/aerospace/launch-app.sh zoom.us'
 
@@ -383,6 +384,7 @@ All shortcuts use `fn` as the base modifier (mapped via Karabiner-Elements to `c
 |--------|----------|
 | Safari (new window) | `fn + b` |
 | Obsidian (new window) | `fn + o` |
+| Signal | `fn + s` |
 | Ghostty (new window) | `fn + t` |
 | Zoom | `fn + z` |
 

@@ -13,7 +13,7 @@ KEYS=(
     # Quick switch
     tab
     # App launchers
-    b o t z
+    b o s t z
     # Service mode
     semicolon
     # hjkl (service mode join-with)
