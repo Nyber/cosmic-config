@@ -32,9 +32,9 @@ sbar.add("item", "widgets.calendar.padding", {
 })
 
 cal:subscribe({ "forced", "routine", "system_woke" }, function(env)
-  local month = tonumber(os.date("%m"))
-  local day = tonumber(os.date("%d"))
-  local hour = tonumber(os.date("%I"))
+  local month = tonumber(os.date("%m")) or 1
+  local day = tonumber(os.date("%d")) or 1
+  local hour = tonumber(os.date("%I")) or 12
   cal:set({
     label = month .. "/" .. day .. os.date("/%y") .. " " .. hour .. os.date(":%M %p"),
   })

@@ -138,6 +138,7 @@ local function volume_toggle_details(env)
 end
 
 local function volume_scroll(env)
+  if not env.INFO then return end
   local delta = env.INFO.delta
   if not (env.INFO.modifier == "ctrl") then delta = delta * 10.0 end
 
