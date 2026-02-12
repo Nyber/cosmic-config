@@ -13,8 +13,8 @@ Clone anywhere you like — the install script detects its own location.
 
 ## What it does
 
-1. Installs **Homebrew** (if missing)
-2. Installs **Xcode Command Line Tools** (if missing) — needed by SbarLua and SketchyBar C helpers
+1. Installs **Xcode Command Line Tools** (if missing) — needed by SbarLua and SketchyBar C helpers
+2. Installs **Homebrew** (if missing)
 3. Runs **`brew bundle`** — all packages, casks, and fonts from `Brewfile`
 4. Builds **SbarLua** — Lua bindings required by SketchyBar's config
 5. Starts **JankyBorders** and **SketchyBar** services
@@ -37,8 +37,10 @@ dotfiles/
 │   ├── .aerospace.toml                 # Tiling window manager config
 │   ├── .gitconfig
 │   ├── Library/LaunchAgents/
-│   │   └── com.aerospace.minimize-daemon.plist  # Keeps minimize daemon alive
+│   │   ├── com.aerospace.minimize-daemon.plist  # Keeps minimize daemon alive
+│   │   └── com.user.notif-watcher.plist         # Notification DB watcher
 │   ├── Pictures/
+│   │   ├── profile.jpg                 # Login screen profile picture
 │   │   └── tokyo-night-apple.png       # Desktop wallpaper
 │   └── .config/
 │       ├── aerospace/                  # Helper scripts
@@ -76,11 +78,15 @@ dotfiles/
 │       │   │       ├── volume.lua      # Volume + audio device picker
 │       │   │       ├── screenshot.lua
 │       │   │       ├── vpn.lua         # F5 BIG-IP toggle
+│       │   │       └── notifications.lua  # Bell widget (notification center)
 │       │   └── helpers/                # C helpers + SbarLua loader
 │       │       ├── init.lua            # Loads SbarLua + builds C helpers
 │       │       ├── makefile            # Builds C helpers
 │       │       ├── .gitignore          # Ignores compiled binaries
 │       │       ├── app_icons.lua       # App → icon mapping
+│       │       ├── badge_data.lua      # Badge attention data for workspaces
+│       │       ├── json.lua            # JSON parser for notification cache
+│       │       ├── notification_reader.py  # Notification DB reader/dismisser
 │       │       ├── vpn_toggle.sh       # VPN connect/disconnect
 │       │       └── menus/              # Native menu bar access (C)
 │       │           ├── makefile
@@ -115,7 +121,9 @@ Karabiner-Elements maps `fn` to `cmd+option`, so AeroSpace binds `alt-cmd-*` but
 | `fn + =` / `fn + -` | Resize |
 | `fn + b` | Launch Safari |
 | `fn + o` | Launch Obsidian |
+| `fn + s` | Launch Signal |
 | `fn + t` | Launch Ghostty |
+| `fn + z` | Launch Zoom |
 | `fn + shift + ;` | Enter service mode |
 
 **Service mode** (press key, then auto-returns to main):

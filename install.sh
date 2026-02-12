@@ -265,6 +265,9 @@ ok "Don't restore windows on relaunch"
 # Finder
 FINDER_CHANGED=false
 [[ "$(defaults read com.apple.finder AppleShowAllFiles 2>/dev/null)" != "1" ]] && FINDER_CHANGED=true
+[[ "$(defaults read com.apple.finder ShowPathbar 2>/dev/null)" != "1" ]] && FINDER_CHANGED=true
+[[ "$(defaults read com.apple.finder FXPreferredViewStyle 2>/dev/null)" != "Nlsv" ]] && FINDER_CHANGED=true
+[[ "$(defaults read com.apple.finder _FXSortFoldersFirst 2>/dev/null)" != "1" ]] && FINDER_CHANGED=true
 defaults write com.apple.finder AppleShowAllFiles -bool true
 defaults write NSGlobalDomain AppleShowAllExtensions -bool true
 defaults write com.apple.finder ShowPathbar -bool true
@@ -302,6 +305,8 @@ ok "Fast key repeat"
 DOCK_CHANGED=false
 [[ "$(defaults read com.apple.dock autohide 2>/dev/null)" != "1" ]] && DOCK_CHANGED=true
 [[ "$(defaults read com.apple.dock tilesize 2>/dev/null)" != "43" ]] && DOCK_CHANGED=true
+[[ "$(defaults read com.apple.dock show-recents 2>/dev/null)" != "0" ]] && DOCK_CHANGED=true
+[[ "$(defaults read com.apple.dock persistent-apps 2>/dev/null | grep -c CFBundleIdentifier)" != "0" ]] && DOCK_CHANGED=true
 defaults write com.apple.dock autohide -bool true
 defaults write com.apple.dock tilesize -int 43
 defaults write com.apple.dock show-recents -bool false
@@ -324,8 +329,12 @@ if [[ -f "$DND_CONFIG" ]]; then
 import json, time, sys
 with open(sys.argv[1]) as f:
     data = json.load(f)
-mode = data['data'][0]['modeConfigurations']['com.apple.donotdisturb.mode.default']
-triggers = mode['triggers']['triggers']
+try:
+    mode = data['data'][0]['modeConfigurations']['com.apple.donotdisturb.mode.default']
+    triggers = mode['triggers']['triggers']
+except (KeyError, IndexError, TypeError):
+    print('skip')
+    sys.exit(0)
 sched = None
 for t in triggers:
     if t.get('class') == 'DNDModeConfigurationScheduleTrigger':
@@ -357,6 +366,8 @@ print('changed')
     if [[ "$DND_RESULT" == "changed" ]]; then
         killall -HUP donotdisturbd 2>/dev/null || true
         ok "Do Not Disturb 24/7 schedule (bell widget handles notifications)"
+    elif [[ "$DND_RESULT" == "skip" ]]; then
+        skip "DND config structure unexpected"
     else
         ok "Do Not Disturb already configured"
     fi
