@@ -15,7 +15,7 @@ on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
 # Keep workspaces 1-5 alive
 persistent-workspaces = ["1", "2", "3", "4", "5"]
 
-exec-on-workspace-change = ['/bin/bash', '-c', '~/.config/aerospace/workspace-changed.sh']
+exec-on-workspace-change = ['/bin/bash', '-c', '$HOME/.config/aerospace/workspace-changed.sh']
 
 [key-mapping]
     preset = 'qwerty'
@@ -66,15 +66,15 @@ exec-on-workspace-change = ['/bin/bash', '-c', '~/.config/aerospace/workspace-ch
     alt-cmd-9 = 'workspace 9'
 
     # --- Move window to workspace: fn + shift + number ---
-    alt-cmd-shift-1 = ['move-node-to-workspace 1', 'exec-and-forget ~/.config/aerospace/move-window.sh 1']
-    alt-cmd-shift-2 = ['move-node-to-workspace 2', 'exec-and-forget ~/.config/aerospace/move-window.sh 2']
-    alt-cmd-shift-3 = ['move-node-to-workspace 3', 'exec-and-forget ~/.config/aerospace/move-window.sh 3']
-    alt-cmd-shift-4 = ['move-node-to-workspace 4', 'exec-and-forget ~/.config/aerospace/move-window.sh 4']
-    alt-cmd-shift-5 = ['move-node-to-workspace 5', 'exec-and-forget ~/.config/aerospace/move-window.sh 5']
-    alt-cmd-shift-6 = ['move-node-to-workspace 6', 'exec-and-forget ~/.config/aerospace/move-window.sh 6']
-    alt-cmd-shift-7 = ['move-node-to-workspace 7', 'exec-and-forget ~/.config/aerospace/move-window.sh 7']
-    alt-cmd-shift-8 = ['move-node-to-workspace 8', 'exec-and-forget ~/.config/aerospace/move-window.sh 8']
-    alt-cmd-shift-9 = ['move-node-to-workspace 9', 'exec-and-forget ~/.config/aerospace/move-window.sh 9']
+    alt-cmd-shift-1 = ['move-node-to-workspace 1', 'exec-and-forget $HOME/.config/aerospace/move-window.sh 1']
+    alt-cmd-shift-2 = ['move-node-to-workspace 2', 'exec-and-forget $HOME/.config/aerospace/move-window.sh 2']
+    alt-cmd-shift-3 = ['move-node-to-workspace 3', 'exec-and-forget $HOME/.config/aerospace/move-window.sh 3']
+    alt-cmd-shift-4 = ['move-node-to-workspace 4', 'exec-and-forget $HOME/.config/aerospace/move-window.sh 4']
+    alt-cmd-shift-5 = ['move-node-to-workspace 5', 'exec-and-forget $HOME/.config/aerospace/move-window.sh 5']
+    alt-cmd-shift-6 = ['move-node-to-workspace 6', 'exec-and-forget $HOME/.config/aerospace/move-window.sh 6']
+    alt-cmd-shift-7 = ['move-node-to-workspace 7', 'exec-and-forget $HOME/.config/aerospace/move-window.sh 7']
+    alt-cmd-shift-8 = ['move-node-to-workspace 8', 'exec-and-forget $HOME/.config/aerospace/move-window.sh 8']
+    alt-cmd-shift-9 = ['move-node-to-workspace 9', 'exec-and-forget $HOME/.config/aerospace/move-window.sh 9']
 
     # --- Quick switch ---
     alt-cmd-tab = 'workspace-back-and-forth'

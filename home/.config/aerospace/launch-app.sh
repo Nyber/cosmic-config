@@ -2,6 +2,7 @@
 # Generic launcher: open a new window if the app is running, otherwise launch it.
 # Usage: launch-app.sh <AppName>  (e.g., Safari, Obsidian, Ghostty)
 app="$1"
+[ -z "$app" ] && exit 1
 current_ws=$(aerospace list-workspaces --focused)
 
 if pgrep -xi "$app" > /dev/null; then
