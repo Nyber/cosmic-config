@@ -112,6 +112,7 @@ exec-on-workspace-change = ['/bin/bash', '-c', '~/.config/aerospace/workspace-ch
     alt-cmd-b = 'exec-and-forget $HOME/.config/aerospace/launch-app.sh Safari'
     alt-cmd-o = 'exec-and-forget $HOME/.config/aerospace/launch-app.sh Obsidian'
     alt-cmd-t = 'exec-and-forget $HOME/.config/aerospace/launch-app.sh Ghostty'
+    alt-cmd-z = 'exec-and-forget $HOME/.config/aerospace/launch-app.sh zoom.us'
 
     # --- Service mode (fn+shift+;) ---
     alt-cmd-shift-semicolon = 'mode service'
@@ -137,7 +138,7 @@ Generic launcher — takes an app name as `$1`. Opens a new window if the app is
 ```bash
 #!/bin/sh
 # Generic launcher: open a new window if the app is running, otherwise launch it.
-# Usage: launch-app.sh <AppName>  (e.g., Safari, Obsidian, Ghostty)
+# Usage: launch-app.sh <AppName>  (e.g., Safari, Obsidian, Ghostty, zoom.us)
 app="$1"
 current_ws=$(aerospace list-workspaces --focused)
 
@@ -383,6 +384,7 @@ All shortcuts use `fn` as the base modifier (mapped via Karabiner-Elements to `c
 | Safari (new window) | `fn + b` |
 | Obsidian (new window) | `fn + o` |
 | Ghostty (new window) | `fn + t` |
+| Zoom | `fn + z` |
 
 **Layout & Resize**
 | Action | Shortcut |
