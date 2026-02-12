@@ -897,10 +897,11 @@ sudo chmod 0440 /etc/sudoers.d/wyoung5
 ```
 Drop-in file at `/etc/sudoers.d/wyoung5` — survives macOS updates to the main sudoers file.
 
-### Display sleep
+### Power management (AC power)
 ```bash
-sudo pmset -a displaysleep 15
+sudo pmset -c sleep 0 displaysleep 0 disksleep 0 standby 0 powernap 0
 ```
+Prevents sleep, display off, disk sleep, standby, and Power Nap when plugged in. Battery defaults are unchanged.
 
 ### Finder
 ```bash

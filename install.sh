@@ -234,9 +234,9 @@ else
     ok "Passwordless sudo configured"
 fi
 
-# Power management
-sudo pmset -a displaysleep 15
-ok "Display sleep set to 15 min"
+# Power management (AC: never sleep; battery: unchanged defaults)
+sudo pmset -c sleep 0 displaysleep 0 disksleep 0 standby 0 powernap 0
+ok "AC power: sleep, display sleep, disk sleep, standby, powernap disabled"
 
 # Auto-hide macOS menu bar (SketchyBar replaces it with topmost=on)
 defaults write com.apple.WindowManager AutoHideMenuBar -int 3
