@@ -818,7 +818,12 @@ Set automatically by `install.sh`. To set manually:
 osascript -e 'tell application "System Events" to tell every desktop to set picture to POSIX file "'"$HOME/Pictures/tokyo-night-apple.png"'"'
 ```
 
-Lock screen automatically matches the desktop wallpaper. macOS updates may reset the lock screen image.
+Lock screen wallpaper is set separately from the desktop — macOS caches it per-user and updates may reset it. `install.sh` handles this automatically. To fix manually:
+```bash
+USER_UUID="$(dscl . -read /Users/"$(whoami)" GeneratedUID | awk '{print $2}')"
+sudo cp ~/Pictures/tokyo-night-apple.png "/Library/Caches/Desktop Pictures/$USER_UUID/lockscreen.png"
+sudo chown "$(whoami):_securityagent" "/Library/Caches/Desktop Pictures/$USER_UUID/lockscreen.png"
+```
 
 ## Citrix Workspace
 
