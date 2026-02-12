@@ -180,15 +180,15 @@ def watch():
     MAX_INTERVAL = 15
     interval = MIN_INTERVAL
 
-    last_ids = set()
+    last_snapshot = ""
 
     while True:
         try:
             notifications = list_notifications()
-            current_ids = {n["id"] for n in notifications}
+            snapshot = json.dumps(notifications, sort_keys=True)
 
-            if current_ids != last_ids:
-                last_ids = current_ids
+            if snapshot != last_snapshot:
+                last_snapshot = snapshot
                 write_cache(notifications)
                 subprocess.run(
                     ["sketchybar", "--trigger", "wal_changed",

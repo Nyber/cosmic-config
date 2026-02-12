@@ -330,4 +330,8 @@ sbar.add("item", "widgets.notifications.padding", {
 
 -- Watcher is managed by launchd (com.user.notif-watcher), not SketchyBar.
 -- On forced/system_woke, just refresh the cache as a fallback sync.
-bell:subscribe({"forced", "system_woke"}, refresh_from_cache)
+bell:subscribe({"forced", "system_woke"}, function()
+  sbar.exec(notif_script, function()
+    refresh_from_cache()
+  end)
+end)
