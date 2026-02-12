@@ -667,7 +667,7 @@ if [[ -o login || -z "$SUDO_USER" ]]; then
 fi
 
 # fzf
-source <(fzf --zsh)
+command -v fzf &>/dev/null && source <(fzf --zsh)
 ```
 
 ### /etc/starship.toml
@@ -682,6 +682,7 @@ $username\
 $directory\
 $git_branch\
 $git_status\
+$cmd_duration\
 $character"""
 
 palette = 'tokyo_night'

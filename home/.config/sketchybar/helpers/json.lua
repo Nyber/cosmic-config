@@ -102,6 +102,7 @@ decode_value = function(s, i)
   elseif c == 'n' then return nil, i + 4
   else
     local num_str = s:match("^-?%d+%.?%d*[eE]?[+-]?%d*", i)
+    if not num_str then return nil, i + 1 end
     return tonumber(num_str), i + #num_str
   end
 end

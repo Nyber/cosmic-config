@@ -241,7 +241,7 @@ end
 
 -- Scroll handler
 local function on_scroll(env)
-  local delta = tonumber(env.SCROLL_DELTA or 0)
+  local delta = tonumber(env.INFO and env.INFO.delta or 0)
   if delta == 0 then return end
   local total_pages = math.ceil(#cached_notifs / MAX_VISIBLE)
   if delta > 0 and current_page > 0 then
