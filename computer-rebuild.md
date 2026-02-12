@@ -43,7 +43,7 @@ on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
 # Keep workspaces 1-5 alive
 persistent-workspaces = ["1", "2", "3", "4", "5"]
 
-exec-on-workspace-change = ['/bin/bash', '-c', '~/.config/aerospace/workspace-changed.sh']
+exec-on-workspace-change = ['/bin/bash', '-c', '$HOME/.config/aerospace/workspace-changed.sh']
 
 [key-mapping]
     preset = 'qwerty'
@@ -94,15 +94,15 @@ exec-on-workspace-change = ['/bin/bash', '-c', '~/.config/aerospace/workspace-ch
     alt-cmd-9 = 'workspace 9'
 
     # --- Move window to workspace: fn + shift + number ---
-    alt-cmd-shift-1 = ['move-node-to-workspace 1', 'exec-and-forget ~/.config/aerospace/move-window.sh 1']
-    alt-cmd-shift-2 = ['move-node-to-workspace 2', 'exec-and-forget ~/.config/aerospace/move-window.sh 2']
-    alt-cmd-shift-3 = ['move-node-to-workspace 3', 'exec-and-forget ~/.config/aerospace/move-window.sh 3']
-    alt-cmd-shift-4 = ['move-node-to-workspace 4', 'exec-and-forget ~/.config/aerospace/move-window.sh 4']
-    alt-cmd-shift-5 = ['move-node-to-workspace 5', 'exec-and-forget ~/.config/aerospace/move-window.sh 5']
-    alt-cmd-shift-6 = ['move-node-to-workspace 6', 'exec-and-forget ~/.config/aerospace/move-window.sh 6']
-    alt-cmd-shift-7 = ['move-node-to-workspace 7', 'exec-and-forget ~/.config/aerospace/move-window.sh 7']
-    alt-cmd-shift-8 = ['move-node-to-workspace 8', 'exec-and-forget ~/.config/aerospace/move-window.sh 8']
-    alt-cmd-shift-9 = ['move-node-to-workspace 9', 'exec-and-forget ~/.config/aerospace/move-window.sh 9']
+    alt-cmd-shift-1 = ['move-node-to-workspace 1', 'exec-and-forget $HOME/.config/aerospace/move-window.sh 1']
+    alt-cmd-shift-2 = ['move-node-to-workspace 2', 'exec-and-forget $HOME/.config/aerospace/move-window.sh 2']
+    alt-cmd-shift-3 = ['move-node-to-workspace 3', 'exec-and-forget $HOME/.config/aerospace/move-window.sh 3']
+    alt-cmd-shift-4 = ['move-node-to-workspace 4', 'exec-and-forget $HOME/.config/aerospace/move-window.sh 4']
+    alt-cmd-shift-5 = ['move-node-to-workspace 5', 'exec-and-forget $HOME/.config/aerospace/move-window.sh 5']
+    alt-cmd-shift-6 = ['move-node-to-workspace 6', 'exec-and-forget $HOME/.config/aerospace/move-window.sh 6']
+    alt-cmd-shift-7 = ['move-node-to-workspace 7', 'exec-and-forget $HOME/.config/aerospace/move-window.sh 7']
+    alt-cmd-shift-8 = ['move-node-to-workspace 8', 'exec-and-forget $HOME/.config/aerospace/move-window.sh 8']
+    alt-cmd-shift-9 = ['move-node-to-workspace 9', 'exec-and-forget $HOME/.config/aerospace/move-window.sh 9']
 
     # --- Quick switch ---
     alt-cmd-tab = 'workspace-back-and-forth'
@@ -546,7 +546,7 @@ On first run, `helpers/init.lua` runs `make` in the `helpers/` directory to comp
 - Clicking the front app toggles between showing workspace indicators and native app menus.
 - Media widget shows now playing info for Spotify/Music with playback controls popup.
 - Volume widget includes a slider popup and audio device picker (via `switchaudio-osx`).
-- VPN item polls every 5 seconds for the `svpn` process (F5 BIG-IP Edge Client). Clicking toggles connect/disconnect.
+- VPN item is event-driven (`network_change`, `vpn_change`, `system_woke`), checking for the `svpn` process (F5 BIG-IP Edge Client). Clicking toggles connect/disconnect.
 - Starts at login via `brew services`.
 
 ## Terminal (Ghostty)
@@ -616,6 +616,7 @@ Append to `/etc/zprofile`:
 ```bash
 # Homebrew (global)
 eval "$(/opt/homebrew/bin/brew shellenv)"
+export HOMEBREW_NO_ENV_HINTS=1
 ```
 
 Tokyo Night theme for eza:
@@ -638,15 +639,20 @@ alias ll='eza -la --icons --group --links'
 # Yazi file manager
 alias browse='yazi'
 
+# Explicit key bindings (fallback if terminfo is missing)
+bindkey '^?' backward-delete-char
+bindkey '^H' backward-delete-char
+bindkey '^[[3~' delete-char
+
 # Starship prompt (global — per-user ~/.config/starship.toml overrides)
 [[ ! -f ~/.config/starship.toml ]] && export STARSHIP_CONFIG=/etc/starship.toml
 eval "$(starship init zsh)"
 
-# Plugins (guard autosuggestions — async PTY conflicts with sudo su)
+# Plugins (guard — async PTY conflicts with sudo su)
 if [[ -o login || -z "$SUDO_USER" ]]; then
   source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+  source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 fi
-source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
 # fzf
 source <(fzf --zsh)
@@ -654,25 +660,33 @@ source <(fzf --zsh)
 
 ### /etc/starship.toml
 
-Save with `sudo tee /etc/starship.toml`. Tokyo Night themed single-line prompt with OS icon, directory, git info, language versions, and command duration. Per-user override: `~/.config/starship.toml`.
+Save with `sudo tee /etc/starship.toml`. Tokyo Night themed single-line prompt with OS icon, username, directory, git info, and command duration. Per-user override: `~/.config/starship.toml`.
 
 ```toml
 "$schema" = 'https://starship.rs/config-schema.json'
 
 format = """$os\
+$username\
 $directory\
 $git_branch\
 $git_status\
 $character"""
 
 palette = 'tokyo_night'
+command_timeout = 200
 
 [os]
 disabled = false
-format = '[$symbol](fg:comment) '
+format = '[$symbol](fg:foreground) '
 
 [os.symbols]
 Macos = ""
+
+[username]
+show_always = true
+format = "[$user]($style) "
+style_root = "fg:red bold"
+style_user = "fg:foreground"
 
 [directory]
 style = "fg:foreground"
@@ -688,65 +702,6 @@ format = '[$symbol $branch]($style) '
 [git_status]
 style = "fg:orange"
 format = '[$all_status$ahead_behind]($style)'
-
-[fill]
-symbol = ' '
-
-[nodejs]
-symbol = ""
-style = "fg:green"
-format = 'via [$symbol $version]($style) '
-
-[c]
-symbol = ""
-style = "fg:blue"
-format = 'via [$symbol $version]($style) '
-
-[rust]
-symbol = ""
-style = "fg:orange"
-format = 'via [$symbol $version]($style) '
-
-[golang]
-symbol = ""
-style = "fg:cyan"
-format = 'via [$symbol $version]($style) '
-
-[php]
-symbol = ""
-style = "fg:purple"
-format = 'via [$symbol $version]($style) '
-
-[java]
-symbol = ""
-style = "fg:red"
-format = 'via [$symbol $version]($style) '
-
-[kotlin]
-symbol = ""
-style = "fg:purple"
-format = 'via [$symbol $version]($style) '
-
-[haskell]
-symbol = ""
-style = "fg:purple"
-format = 'via [$symbol $version]($style) '
-
-[python]
-symbol = ""
-style = "fg:yellow"
-format = 'via [$symbol $version(\($virtualenv\))]($style) '
-
-[conda]
-symbol = "󱔎"
-style = "fg:green"
-format = 'via [$symbol $environment]($style) '
-ignore_base = false
-
-[docker_context]
-symbol = ""
-style = "fg:cyan"
-format = 'via [$symbol $context]($style) '
 
 [cmd_duration]
 show_milliseconds = false
@@ -986,11 +941,10 @@ sudo defaults write /Library/Preferences/com.apple.loginwindow SHOWFULLNAME -boo
 Profile picture (Apple logo on Tokyo Night background — `~/Pictures/profile.jpg`, symlinked from dotfiles):
 ```bash
 # Embed image data via dsimport (dscl Picture path alone doesn't work on modern macOS)
-printf '0x0A 0x5C 0x3A 0x2C dsRecTypeStandard:Users 2 dsAttrTypeStandard:RecordName externalbinary:dsAttrTypeStandard:JPEGPhoto\nwyoung5:%s\n' "$HOME/Pictures/profile.jpg" > /tmp/wyoung5_pic.dsimport
-sudo dsimport /tmp/wyoung5_pic.dsimport /Local/Default M
-
-printf '0x0A 0x5C 0x3A 0x2C dsRecTypeStandard:Users 2 dsAttrTypeStandard:RecordName externalbinary:dsAttrTypeStandard:JPEGPhoto\nwyoung:%s\n' "$HOME/Pictures/profile.jpg" > /tmp/wyoung_pic.dsimport
-sudo dsimport /tmp/wyoung_pic.dsimport /Local/Default M
+# install.sh sets this for $(whoami) automatically
+CURRENT_USER="$(whoami)"
+printf '0x0A 0x5C 0x3A 0x2C dsRecTypeStandard:Users 2 dsAttrTypeStandard:RecordName externalbinary:dsAttrTypeStandard:JPEGPhoto\n%s:%s\n' "$CURRENT_USER" "$HOME/Pictures/profile.jpg" > /tmp/user_pic.dsimport
+sudo dsimport /tmp/user_pic.dsimport /Local/Default M
 ```
 
 ### macOS menu bar (hidden — replaced by SketchyBar)
