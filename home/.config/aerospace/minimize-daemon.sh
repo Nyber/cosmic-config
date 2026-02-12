@@ -13,7 +13,7 @@ PIDFILE="$MDIR/.minimize-daemon.pid"
 FAST_POLLS=0
 
 echo $$ > "$PIDFILE"
-trap 'rm -f "$PREV_FILE" "$CURR_FILE" "$PIDFILE"' EXIT
+trap 'rm -f "$PREV_FILE" "$PREV_FILE.new" "$CURR_FILE" "$PIDFILE"' EXIT
 trap 'FAST_POLLS=3' USR1
 
 : > "$PREV_FILE"

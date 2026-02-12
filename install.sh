@@ -9,20 +9,7 @@ ok()    { printf '\033[1;32m    ✓ %s\033[0m\n' "$1"; }
 skip()  { printf '\033[1;33m    ⊘ %s (skipped)\033[0m\n' "$1"; }
 
 # ---------------------------------------------------------------------------
-# 1. Homebrew
-# ---------------------------------------------------------------------------
-info "Checking Homebrew"
-if command -v brew &>/dev/null; then
-    ok "Homebrew already installed"
-else
-    info "Installing Homebrew"
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    eval "$(/opt/homebrew/bin/brew shellenv)"
-    ok "Homebrew installed"
-fi
-
-# ---------------------------------------------------------------------------
-# 1.5. Xcode Command Line Tools
+# 1. Xcode Command Line Tools (required by Homebrew)
 # ---------------------------------------------------------------------------
 info "Checking Xcode Command Line Tools"
 if xcode-select -p &>/dev/null; then
@@ -35,14 +22,27 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# 2. brew bundle
+# 2. Homebrew
+# ---------------------------------------------------------------------------
+info "Checking Homebrew"
+if command -v brew &>/dev/null; then
+    ok "Homebrew already installed"
+else
+    info "Installing Homebrew"
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+    ok "Homebrew installed"
+fi
+
+# ---------------------------------------------------------------------------
+# 3. brew bundle
 # ---------------------------------------------------------------------------
 info "Running brew bundle"
 brew bundle --file="$DOTFILES/Brewfile"
 ok "Packages installed"
 
 # ---------------------------------------------------------------------------
-# 2.5. SbarLua (Lua bindings for SketchyBar)
+# 4. SbarLua (Lua bindings for SketchyBar)
 # ---------------------------------------------------------------------------
 info "Installing SbarLua"
 SBARLUA_DIR="$HOME/.local/share/sketchybar_lua"
@@ -55,7 +55,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# 3. Start services
+# 5. Start services
 # ---------------------------------------------------------------------------
 BREW_SERVICES="$(brew services list)"
 
@@ -76,7 +76,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# 4. Symlinks (home/ → ~/)
+# 6. Symlinks (home/ → ~/)
 # ---------------------------------------------------------------------------
 info "Creating symlinks"
 
@@ -132,7 +132,7 @@ for plist in "$HOME"/Library/LaunchAgents/com.aerospace.minimize-daemon.plist \
 done
 
 # ---------------------------------------------------------------------------
-# 5. System configs (sudo)
+# 7. System configs (sudo)
 # ---------------------------------------------------------------------------
 info "Installing system configs (sudo required)"
 
@@ -190,7 +190,7 @@ install_block "$DOTFILES/etc/zshrc.append" /etc/zshrc
 install_block "$DOTFILES/etc/zprofile.append" /etc/zprofile
 
 # ---------------------------------------------------------------------------
-# 6. Yazi Tokyo Night flavor
+# 8. Yazi Tokyo Night flavor
 # ---------------------------------------------------------------------------
 info "Yazi Tokyo Night flavor"
 YAZI_FLAVOR_DIR="$HOME/.config/yazi/flavors/tokyo-night.yazi"
@@ -202,7 +202,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# 6.5. Wallpaper
+# 9. Wallpaper
 # ---------------------------------------------------------------------------
 info "Setting wallpaper"
 WALLPAPER="$HOME/Pictures/tokyo-night-apple.png"
@@ -220,7 +220,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# 7. macOS settings
+# 10. macOS settings
 # ---------------------------------------------------------------------------
 info "macOS settings"
 
