@@ -238,6 +238,10 @@ fi
 sudo pmset -c sleep 0 displaysleep 0 disksleep 0 standby 0 powernap 0
 ok "AC power: sleep, display sleep, disk sleep, standby, powernap disabled"
 
+# Disable fn key emoji picker (Karabiner remaps fn for AeroSpace)
+defaults write com.apple.HIToolbox AppleFnUsageType -int 0
+ok "fn key emoji picker disabled"
+
 # Auto-hide macOS menu bar (SketchyBar replaces it with topmost=on)
 defaults write com.apple.WindowManager AutoHideMenuBar -int 3
 ok "macOS menu bar auto-hidden (SketchyBar replaces it)"
