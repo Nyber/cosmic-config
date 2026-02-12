@@ -26,4 +26,4 @@ if [[ -o login || -z "$SUDO_USER" ]]; then
 fi
 
 # fzf
-source <(fzf --zsh)
+command -v fzf &>/dev/null && source <(fzf --zsh)

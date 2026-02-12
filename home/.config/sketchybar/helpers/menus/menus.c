@@ -96,6 +96,7 @@ AXUIElementRef ax_get_extra_menu_item(char* alias) {
   CGRect bounds = CGRectNull;
   CFArrayRef window_list = CGWindowListCopyWindowInfo(kCGWindowListOptionAll,
                                                       kCGNullWindowID        );
+  if (!window_list) return NULL;
   char owner_buffer[256];
   char name_buffer[256];
   char buffer[512];
