@@ -371,6 +371,8 @@ if [[ -f "$PROFILE_PIC" ]]; then
     printf '0x0A 0x5C 0x3A 0x2C dsRecTypeStandard:Users 2 dsAttrTypeStandard:RecordName externalbinary:dsAttrTypeStandard:JPEGPhoto\n%s:%s\n' "$CURRENT_USER" "$PROFILE_PIC" > /tmp/user_pic.dsimport
     sudo dsimport /tmp/user_pic.dsimport /Local/Default M 2>/dev/null
     rm -f /tmp/user_pic.dsimport
+    sudo dscl . -delete /Users/"$CURRENT_USER" Picture 2>/dev/null
+    sudo dscl . -create /Users/"$CURRENT_USER" Picture "$PROFILE_PIC"
     ok "Login screen profile picture (Tokyo Night Apple)"
 else
     skip "Profile picture not found"
