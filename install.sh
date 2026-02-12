@@ -368,7 +368,8 @@ ok "Login screen: name/password fields"
 PROFILE_PIC="$HOME/Pictures/profile.jpg"
 if [[ -f "$PROFILE_PIC" ]]; then
     CURRENT_USER="$(whoami)"
-    printf '0x0A 0x5C 0x3A 0x2C dsRecTypeStandard:Users 2 dsAttrTypeStandard:RecordName externalbinary:dsAttrTypeStandard:JPEGPhoto\n%s:%s\n' "$CURRENT_USER" "$PROFILE_PIC" > /tmp/user_pic.dsimport
+    PROFILE_PIC_REAL="$(readlink -f "$PROFILE_PIC" 2>/dev/null || echo "$PROFILE_PIC")"
+    printf '0x0A 0x5C 0x3A 0x2C dsRecTypeStandard:Users 2 dsAttrTypeStandard:RecordName externalbinary:dsAttrTypeStandard:JPEGPhoto\n%s:%s\n' "$CURRENT_USER" "$PROFILE_PIC_REAL" > /tmp/user_pic.dsimport
     sudo dsimport /tmp/user_pic.dsimport /Local/Default M 2>/dev/null
     rm -f /tmp/user_pic.dsimport
     sudo dscl . -delete /Users/"$CURRENT_USER" Picture 2>/dev/null
