@@ -164,8 +164,8 @@ def dismiss(target):
             cur.execute("DELETE FROM record WHERE rec_id = ?", (int(target),))
         conn.commit()
         conn.close()
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"dismiss error: {e}", file=sys.stderr)
 
 
 def write_cache(notifications):

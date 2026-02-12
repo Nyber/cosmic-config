@@ -139,8 +139,9 @@ Generic launcher — takes an app name as `$1`. Opens a new window if the app is
 ```bash
 #!/bin/sh
 # Generic launcher: open a new window if the app is running, otherwise launch it.
-# Usage: launch-app.sh <AppName>  (e.g., Safari, Obsidian, Ghostty, zoom.us)
+# Usage: launch-app.sh <AppName>  (e.g., Safari, Obsidian, Ghostty)
 app="$1"
+[ -z "$app" ] && exit 1
 current_ws=$(aerospace list-workspaces --focused)
 
 if pgrep -xi "$app" > /dev/null; then
@@ -195,21 +196,32 @@ sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE="$(aerospace l
 ```
 
 #### minimize-window.sh
-Minimizes the focused window via `fn+m`. The `minimize-daemon` handles tracking and restoring to the original workspace — this script just minimizes and handles the empty-workspace auto-switch.
+Minimizes the focused window via `fn+m`. Writes the `.minimized` tracking file directly (guaranteed workspace capture) and wakes the daemon from slow sleep. Handles the empty-workspace auto-switch.
 
 ```bash
 #!/bin/sh
-# Minimize the focused window via fn+m. The minimize-daemon handles tracking
-# and restoring to the original workspace — this script just minimizes and
-# handles the empty-workspace auto-switch.
+# Minimize the focused window via fn+m. Writes the .minimized tracking file
+# directly (guaranteed workspace capture) and wakes the daemon from slow sleep.
 
+MDIR="$HOME/.config/aerospace"
 WINDOW_ID=$(aerospace list-windows --focused --format '%{window-id}')
 
 if [ -z "$WINDOW_ID" ]; then
   exit 0
 fi
 
+WORKSPACE=$(aerospace list-workspaces --focused)
+
 aerospace macos-native-minimize --window-id "$WINDOW_ID"
+
+# Write tracking file AFTER minimize to avoid false-restore race condition
+echo "$WORKSPACE" > "$MDIR/.minimized-$WINDOW_ID"
+
+# Wake daemon from slow sleep
+PIDFILE="$MDIR/.minimize-daemon.pid"
+if [ -f "$PIDFILE" ]; then
+  kill -USR1 "$(cat "$PIDFILE")" 2>/dev/null
+fi
 
 # If workspace is now empty, switch away
 sleep 0.1
@@ -221,7 +233,7 @@ sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE="$(aerospace l
 ```
 
 #### minimize-daemon.sh
-Persistent background daemon managed by a LaunchAgent (`KeepAlive` ensures auto-restart). Adaptive polling: 2s when tracking minimized windows, 15s when idle. `minimize-window.sh` sends USR1 to wake from slow sleep immediately. Uses a single `awk` pass for efficient window-diff detection instead of per-line grep. Triggers a lightweight `badge_check` event each cycle (badge colors only, no full icon rebuild).
+Persistent background daemon managed by a LaunchAgent (`KeepAlive` ensures auto-restart). Adaptive polling: 2s when tracking minimized windows, 15s when idle. `minimize-window.sh` sends USR1 to wake from slow sleep immediately. Uses a single `awk` pass for efficient window-diff detection instead of per-line grep. Triggers a lightweight `badge_check` event only when the window list changes (badge colors only, no full icon rebuild).
 
 ```bash
 #!/bin/sh
@@ -239,7 +251,7 @@ PIDFILE="$MDIR/.minimize-daemon.pid"
 FAST_POLLS=0
 
 echo $$ > "$PIDFILE"
-trap 'rm -f "$PREV_FILE" "$CURR_FILE" "$PIDFILE"' EXIT
+trap 'rm -f "$PREV_FILE" "$PREV_FILE.new" "$CURR_FILE" "$PIDFILE"' EXIT
 trap 'FAST_POLLS=3' USR1
 
 : > "$PREV_FILE"
@@ -277,11 +289,12 @@ while true; do
     find "$MDIR" -name ".minimized-*" -mmin +10 -delete 2>/dev/null
   fi
 
-  # Save curr as prev, filtering NULL-WOKRSPACE transitional entries
-  grep -v NULL "$CURR_FILE" > "$PREV_FILE"
-
-  # Trigger badge check for workspace attention indicators
-  sketchybar --trigger badge_check
+  # Save curr as prev, triggering badge check only if window list changed
+  grep -v NULL "$CURR_FILE" > "$PREV_FILE.new"
+  if ! cmp -s "$PREV_FILE" "$PREV_FILE.new"; then
+    sketchybar --trigger badge_check
+  fi
+  mv "$PREV_FILE.new" "$PREV_FILE"
 
   # Adaptive sleep: fast after USR1 signal or when tracking minimized windows
   if [ "$FAST_POLLS" -gt 0 ]; then
@@ -309,11 +322,10 @@ sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE="$AEROSPACE_FO
 
 # Hide/unhide Zoom based on whether it's on the focused workspace
 if pgrep -xq "zoom.us"; then
-    if aerospace list-windows --workspace focused 2>/dev/null | grep -q "zoom.us"; then
-        osascript -e 'tell application "System Events" to set visible of process "zoom.us" to true' 2>/dev/null
-    else
-        osascript -e 'tell application "System Events" to set visible of process "zoom.us" to false' 2>/dev/null
-    fi
+    case "$(aerospace list-windows --workspace "$AEROSPACE_FOCUSED_WORKSPACE" --format '%{app-name}' 2>/dev/null)" in
+        *zoom.us*) vis=true ;; *) vis=false ;;
+    esac
+    osascript -e "tell application \"System Events\" to set visible of process \"zoom.us\" to $vis" 2>/dev/null
 fi
 ```
 
@@ -348,7 +360,7 @@ The minimize daemon runs as a LaunchAgent so it starts at login and auto-restart
 
 To load manually (install.sh handles this via symlink):
 ```bash
-launchctl load ~/Library/LaunchAgents/com.aerospace.minimize-daemon.plist
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.aerospace.minimize-daemon.plist
 ```
 
 ### Key Shortcuts
