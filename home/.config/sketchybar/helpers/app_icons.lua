@@ -343,6 +343,5 @@ return {
 	["Tips"] = ":tips:",
 	["VoiceMemos"] = ":voice_memos:",
 	["Weather"] = ":weather:",
-	["Citrix Workspace"] = ":citrix:",
 	["OneDrive"] = ":default:",
 }

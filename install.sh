@@ -123,6 +123,14 @@ done < <(find "$DOTFILES/home" -type f -print0)
 # computer-rebuild.md → ~/
 link_file "$DOTFILES/computer-rebuild.md" "$HOME/computer-rebuild.md"
 
+# Load LaunchAgents (idempotent — bootout first to handle re-runs)
+for plist in "$HOME"/Library/LaunchAgents/com.aerospace.minimize-daemon.plist \
+             "$HOME"/Library/LaunchAgents/com.user.notif-watcher.plist; do
+    label="$(defaults read "$plist" Label 2>/dev/null)" || continue
+    launchctl bootout "gui/$(id -u)/$label" 2>/dev/null
+    launchctl bootstrap "gui/$(id -u)" "$plist" 2>/dev/null && ok "Loaded $label" || skip "Could not load $label"
+done
+
 # ---------------------------------------------------------------------------
 # 5. System configs (sudo)
 # ---------------------------------------------------------------------------
