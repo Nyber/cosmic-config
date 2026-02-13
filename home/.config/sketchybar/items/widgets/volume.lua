@@ -125,7 +125,7 @@ local function volume_toggle_details(env)
             align = "center",
             label = { string = device, color = color },
             click_script = string.format(
-            'SwitchAudioSource -s "%s" && sketchybar --set /volume.device\\.*/ label.color=%s --set $NAME label.color=%s',
+            'SwitchAudioSource -s "%s" && sketchybar --set /volume.device\\.*/ label.color=0x%x --set $NAME label.color=0x%x',
             device, colors.grey, colors.white
           ),
           })
