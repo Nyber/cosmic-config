@@ -9,6 +9,16 @@
 #define MAX_LINE 512
 #define MAX_CMD  512
 
+static void print_json_string(const char *s) {
+    putchar('"');
+    for (; *s; s++) {
+        if (*s == '"') printf("\\\"");
+        else if (*s == '\\') printf("\\\\");
+        else putchar(*s);
+    }
+    putchar('"');
+}
+
 int main(int argc, char *argv[]) {
     if (argc < 2) {
         printf("{}\n");
@@ -49,8 +59,9 @@ int main(int argc, char *argv[]) {
 
         if (label[0] != '\0') {
             if (!first) printf(",");
-            // JSON-escape app name and label (they shouldn't contain quotes, but be safe)
-            printf("\"%s\":\"%s\"", app, label);
+            print_json_string(app);
+            putchar(':');
+            print_json_string(label);
             first = 0;
         }
     }
