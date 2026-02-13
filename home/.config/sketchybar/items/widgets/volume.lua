@@ -65,7 +65,7 @@ local volume_slider = sbar.add("slider", popup_width, {
     },
   },
   background = { color = colors.bg1, height = 2, y_offset = -20 },
-  click_script = 'osascript -e "set volume output volume $PERCENTAGE"'
+  click_script = '$CONFIG_DIR/helpers/volume/bin/volume $PERCENTAGE'
 })
 
 volume_percent:subscribe("volume_change", function(env)
@@ -143,7 +143,8 @@ local function volume_scroll(env)
   local delta = env.INFO.delta
   if not (env.INFO.modifier == "ctrl") then delta = delta * 10.0 end
 
-  sbar.exec('osascript -e "set volume output volume (output volume of (get volume settings) + ' .. delta .. ')"')
+  local sign = delta > 0 and "+" or ""
+  sbar.exec('$CONFIG_DIR/helpers/volume/bin/volume ' .. sign .. math.floor(delta))
 end
 
 volume_icon:subscribe("mouse.clicked", volume_toggle_details)

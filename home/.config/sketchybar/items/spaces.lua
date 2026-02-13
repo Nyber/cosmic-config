@@ -128,45 +128,41 @@ local function check_badges(ws_apps)
     return
   end
 
-  local badged_counts = {}
-  local remaining = #app_list
+  local args = {}
   for _, app in ipairs(app_list) do
-    sbar.exec("lsappinfo info -only StatusLabel " .. shell_quote(app), function(sl)
-      local label = sl:match('"label"="([^"]*)"')
-      if label and label ~= "" then
-        badged_counts[app] = label
-      end
-      remaining = remaining - 1
-      if remaining == 0 then
-        -- Only badge apps that also have a notification in the bell
-        for a in pairs(badged_counts) do
-          if not cached_notified_apps[a] then badged_counts[a] = nil end
-        end
-        -- Update shared badge_data
-        badge_data.counts = badged_counts
-        badge_data.by_workspace = {}
-        badge_data.total = 0
-        for j = 1, 5 do
-          badge_data.by_workspace[j] = {}
-          for a in pairs(ws_apps[j]) do
-            if badged_counts[a] then
-              badge_data.by_workspace[j][#badge_data.by_workspace[j] + 1] = a
-              local n = tonumber(badged_counts[a])
-              if n then
-                badge_data.total = badge_data.total + n
-              else
-                badge_data.total = badge_data.total + 1
-              end
-            end
+    args[#args + 1] = shell_quote(app)
+  end
+  sbar.exec("$CONFIG_DIR/helpers/badges/bin/badges " .. table.concat(args, " "), function(result)
+    local ok, badged_counts = pcall(json.decode, result)
+    if not ok or type(badged_counts) ~= "table" then badged_counts = {} end
+
+    -- Only badge apps that also have a notification in the bell
+    for a in pairs(badged_counts) do
+      if not cached_notified_apps[a] then badged_counts[a] = nil end
+    end
+    -- Update shared badge_data
+    badge_data.counts = badged_counts
+    badge_data.by_workspace = {}
+    badge_data.total = 0
+    for j = 1, 5 do
+      badge_data.by_workspace[j] = {}
+      for a in pairs(ws_apps[j]) do
+        if badged_counts[a] then
+          badge_data.by_workspace[j][#badge_data.by_workspace[j] + 1] = a
+          local n = tonumber(badged_counts[a])
+          if n then
+            badge_data.total = badge_data.total + n
+          else
+            badge_data.total = badge_data.total + 1
           end
         end
-
-        update_badge_icons(ws_apps)
-        for j = 1, 5 do update_space_appearance(j) end
-        sbar.trigger("badge_update")
       end
-    end)
-  end
+    end
+
+    update_badge_icons(ws_apps)
+    for j = 1, 5 do update_space_appearance(j) end
+    sbar.trigger("badge_update")
+  end)
 end
 
 for i = 1, 5, 1 do
@@ -249,8 +245,13 @@ local space_window_observer = sbar.add("item", {
   updates = true,
 })
 
+local update_pending = false
+local last_window_update_time = 0
 local function update_space_icons(env)
+  if update_pending then return end
+  update_pending = true
   sbar.exec("aerospace list-windows --all --format '%{workspace}|%{app-name}'", function(result)
+    update_pending = false
     -- Use env, or fall back to cached focused_workspace (avoids extra subprocess)
     local focused_ws
     if env and env.FOCUSED_WORKSPACE and env.FOCUSED_WORKSPACE ~= "" then
@@ -260,6 +261,7 @@ local function update_space_icons(env)
     end
 
     local ws_apps = parse_window_list(result)
+    last_window_update_time = os.time()
 
     for i = 1, 5 do
       local has_app = false
@@ -306,9 +308,14 @@ local badge_poller = sbar.add("item", {
 })
 
 badge_poller:subscribe("routine", function()
-  sbar.exec("aerospace list-windows --all --format '%{workspace}|%{app-name}'", function(result)
-    check_badges(parse_window_list(result))
-  end)
+  if os.time() - last_window_update_time < 10 and last_ws_apps then
+    check_badges(last_ws_apps)
+  else
+    sbar.exec("aerospace list-windows --all --format '%{workspace}|%{app-name}'", function(result)
+      last_window_update_time = os.time()
+      check_badges(parse_window_list(result))
+    end)
+  end
 end)
 
 -- Trigger initial workspace highlight

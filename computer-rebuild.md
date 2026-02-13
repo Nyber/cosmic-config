@@ -543,21 +543,27 @@ helpers/
   menus/              # Native menu bar access (C)
     makefile
     menus.c
+  badges/             # Batch badge query via lsappinfo (C)
+    makefile
+    badges.c
+  volume/             # CoreAudio volume control (C)
+    makefile
+    volume.c
 ```
 
 ### Building C helpers
-On first run, `helpers/init.lua` runs `make` in the `helpers/` directory to compile the `menus` C helper. This requires Xcode Command Line Tools.
+On first run, `helpers/init.lua` runs `make` in the `helpers/` directory to compile the C helpers (`menus`, `badges`, `volume`). This requires Xcode Command Line Tools.
 
 ### Notes
 - Tokyo Night Storm theme throughout — matches Ghostty, Starship, JankyBorders.
 - `topmost=on` renders SketchyBar above the macOS menu bar (see macOS Settings section for auto-hide fallback).
 - AeroSpace integration uses `sketchybar --trigger aerospace_workspace_change` events (not shell plugin scripts).
-- Workspace indicators show app icons via `sketchybar-app-font`; only non-empty or focused workspaces are visible. Apps with dock badges (non-empty `StatusLabel` via `lsappinfo`) turn their workspace icons red — checked inline in Lua, no shell script.
+- Workspace indicators show app icons via `sketchybar-app-font`; only non-empty or focused workspaces are visible. Apps with dock badges (non-empty `StatusLabel` via `lsappinfo`) turn their workspace icons red — batch-queried via `badges` C helper (single fork+exec for all apps).
 - The minimize-daemon triggers a lightweight `badge_check` custom event (badge colors only) instead of `space_windows_change` (full icon rebuild).
 - Apple icon opens a custom popup menu replacing the native Apple menu — includes About This Mac, Applications (Spotlight Apps view), App Store, Force Quit, Sleep, Restart, Shut Down, Lock Screen, and Log Out.
 - Clicking the front app toggles between showing workspace indicators and native app menus.
 - Media widget shows now playing info for Spotify/Music with playback controls popup.
-- Volume widget includes a slider popup and audio device picker (via `switchaudio-osx`).
+- Volume widget includes a slider popup and audio device picker (via `switchaudio-osx`). Volume changes use `volume` C helper (CoreAudio API) instead of osascript for <1ms latency.
 - VPN item is event-driven (`network_change`, `vpn_change`, `system_woke`), checking for the `svpn` process (F5 BIG-IP Edge Client). Clicking toggles connect/disconnect.
 - Starts at login via `brew services`.
 
