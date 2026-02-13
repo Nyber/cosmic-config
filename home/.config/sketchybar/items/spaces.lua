@@ -136,10 +136,6 @@ local function check_badges(ws_apps)
     local ok, badged_counts = pcall(json.decode, result)
     if not ok or type(badged_counts) ~= "table" then badged_counts = {} end
 
-    -- Only badge apps that also have a notification in the bell
-    for a in pairs(badged_counts) do
-      if not cached_notified_apps[a] then badged_counts[a] = nil end
-    end
     -- Update shared badge_data
     badge_data.counts = badged_counts
     badge_data.by_workspace = {}
