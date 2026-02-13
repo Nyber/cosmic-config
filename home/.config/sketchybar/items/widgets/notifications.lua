@@ -4,10 +4,30 @@ local settings = require("settings")
 local app_icons = require("helpers.app_icons")
 local json = require("helpers.json")
 
+local POPUP_WIDTH = 400
+local BODY_PAD = 38
 local CHAR_WIDTH = 8.0
-local ICON_PAD = 42
-local SIDE_PAD = 20
 local MAX_VISIBLE = 5
+local MAX_BODY_LINES = 2
+local BODY_CHARS = math.floor((POPUP_WIDTH - BODY_PAD) / CHAR_WIDTH)
+
+local function word_wrap(s, max_chars)
+  if #s <= max_chars then return { s } end
+  local lines = {}
+  local line = ""
+  for word in s:gmatch("%S+") do
+    if line == "" then
+      line = word
+    elseif #line + 1 + #word <= max_chars then
+      line = line .. " " .. word
+    else
+      lines[#lines + 1] = line
+      line = word
+    end
+  end
+  if line ~= "" then lines[#lines + 1] = line end
+  return lines
+end
 
 sbar.add("event", "wal_changed")
 
@@ -29,7 +49,7 @@ local bell = sbar.add("item", "widgets.notifications", {
   },
   drawing = false,
   updates = true,
-  popup = { align = "center" },
+  popup = { align = "right" },
 })
 
 local helpers_dir = "/Users/" .. os.getenv("USER") .. "/.config/sketchybar/helpers"
@@ -39,7 +59,6 @@ local notif_cache = helpers_dir .. "/.notif_cache.json"
 -- State
 local current_page = 0
 local cached_notifs = {}
-local cached_popup_width = 300
 
 -- Pre-create all popup slots (never removed, just shown/hidden)
 local slots = {}
@@ -62,21 +81,24 @@ for i = 1, MAX_VISIBLE do
       },
     },
   })
-  local b = sbar.add("item", "widgets.notifications.slot." .. i .. ".b", {
-    position = "popup." .. bell.name,
-    drawing = false,
-    icon = { drawing = false },
-    label = {
-      color = colors.white,
-      padding_left = 38,
-      font = {
-        family = settings.font.text,
-        style = settings.font.style_map["Regular"],
-        size = 13.0,
+  local bodies = {}
+  for j = 1, MAX_BODY_LINES do
+    bodies[j] = sbar.add("item", "widgets.notifications.slot." .. i .. ".b" .. j, {
+      position = "popup." .. bell.name,
+      drawing = false,
+      icon = { drawing = false },
+      label = {
+        color = colors.white,
+        padding_left = BODY_PAD,
+        font = {
+          family = settings.font.text,
+          style = settings.font.style_map["Regular"],
+          size = 13.0,
+        },
       },
-    },
-  })
-  slots[i] = { header = h, body = b }
+    })
+  end
+  slots[i] = { header = h, body = bodies }
 end
 
 local nav_item = sbar.add("item", "widgets.notifications.nav", {
@@ -148,14 +170,18 @@ local function update_bell(count)
   end
 end
 
+local function hide_slot(i)
+  slots[i].header:set({ drawing = false })
+  for j = 1, MAX_BODY_LINES do
+    slots[i].body[j]:set({ drawing = false })
+  end
+end
+
 -- Update popup slot content without removing/adding items
 local function update_popup()
   local total = #cached_notifs
   if total == 0 then
-    for i = 1, MAX_VISIBLE do
-      slots[i].header:set({ drawing = false })
-      slots[i].body:set({ drawing = false })
-    end
+    for i = 1, MAX_VISIBLE do hide_slot(i) end
     nav_item:set({ drawing = false })
     clear_item:set({ drawing = false })
     return
@@ -168,8 +194,6 @@ local function update_popup()
   local start_idx = current_page * MAX_VISIBLE + 1
   local end_idx = math.min(start_idx + MAX_VISIBLE - 1, total)
 
-  local popup_width = cached_popup_width
-
   -- Fill visible slots
   for i = 1, MAX_VISIBLE do
     local idx = start_idx + i - 1
@@ -181,23 +205,36 @@ local function update_popup()
 
       slots[i].header:set({
         drawing = true,
-        width = popup_width,
+        width = POPUP_WIDTH,
         icon = { string = icon },
         label = { string = title .. "  ✕" },
       })
 
       if body ~= "" then
-        slots[i].body:set({
-          drawing = true,
-          width = popup_width,
-          label = { string = body },
-        })
+        local lines = word_wrap(body, BODY_CHARS)
+        for j = 1, MAX_BODY_LINES do
+          if j <= #lines then
+            local text = lines[j]
+            if j == MAX_BODY_LINES and #lines > MAX_BODY_LINES then
+              -- Last visible line but more text remains — truncate
+              text = text:sub(1, BODY_CHARS - 1) .. "…"
+            end
+            slots[i].body[j]:set({
+              drawing = true,
+              width = POPUP_WIDTH,
+              label = { string = text },
+            })
+          else
+            slots[i].body[j]:set({ drawing = false })
+          end
+        end
       else
-        slots[i].body:set({ drawing = false })
+        for j = 1, MAX_BODY_LINES do
+          slots[i].body[j]:set({ drawing = false })
+        end
       end
     else
-      slots[i].header:set({ drawing = false })
-      slots[i].body:set({ drawing = false })
+      hide_slot(i)
     end
   end
 
@@ -207,14 +244,14 @@ local function update_popup()
     local down_arrow = current_page < total_pages - 1 and "▼" or "▽"
     nav_item:set({
       drawing = true,
-      width = popup_width,
+      width = POPUP_WIDTH,
       label = { string = up_arrow .. "  " .. (current_page + 1) .. " / " .. total_pages .. "  " .. down_arrow },
     })
   else
     nav_item:set({ drawing = false })
   end
 
-  clear_item:set({ drawing = true, width = popup_width })
+  clear_item:set({ drawing = true, width = POPUP_WIDTH })
 end
 
 -- Dismiss a notification by rec_id
@@ -246,7 +283,6 @@ end
 -- Subscribe all slots to scroll and click
 for i = 1, MAX_VISIBLE do
   slots[i].header:subscribe("mouse.scrolled", on_scroll)
-  slots[i].body:subscribe("mouse.scrolled", on_scroll)
   -- Click on header/body dismisses (use closure to capture current index)
   local function make_click_handler(slot_idx)
     return function()
@@ -258,7 +294,10 @@ for i = 1, MAX_VISIBLE do
     end
   end
   slots[i].header:subscribe("mouse.clicked", make_click_handler(i))
-  slots[i].body:subscribe("mouse.clicked", make_click_handler(i))
+  for j = 1, MAX_BODY_LINES do
+    slots[i].body[j]:subscribe("mouse.scrolled", on_scroll)
+    slots[i].body[j]:subscribe("mouse.clicked", make_click_handler(i))
+  end
 end
 
 -- Nav click: cycle to next page
@@ -285,16 +324,6 @@ clear_item:subscribe("mouse.scrolled", on_scroll)
 -- Refresh from cache
 local function refresh_from_cache()
   cached_notifs = read_notifs()
-  -- Recalculate popup width when notifications change
-  local max_len = 0
-  for _, notif in ipairs(cached_notifs) do
-    local tl = #(notif.title or "")
-    local bl = #(notif.body or "")
-    if tl > max_len then max_len = tl end
-    if bl > max_len then max_len = bl end
-  end
-  cached_popup_width = math.max(300, math.min(800,
-    math.floor(max_len * CHAR_WIDTH + ICON_PAD + SIDE_PAD)))
   update_bell(#cached_notifs)
   update_popup()
 end
@@ -304,9 +333,7 @@ bell:subscribe("wal_changed", function()
 end)
 
 bell:subscribe("badge_update", function()
-  sbar.exec(notif_script, function()
-    refresh_from_cache()
-  end)
+  refresh_from_cache()
 end)
 
 bell:subscribe("mouse.clicked", function()
