@@ -133,8 +133,13 @@ local function check_badges(ws_apps)
     args[#args + 1] = shell_quote(app)
   end
   sbar.exec("$CONFIG_DIR/helpers/badges/bin/badges " .. table.concat(args, " "), function(result)
-    local ok, badged_counts = pcall(json.decode, result)
-    if not ok or type(badged_counts) ~= "table" then badged_counts = {} end
+    local badged_counts
+    if type(result) == "table" then
+      badged_counts = result
+    else
+      local ok, decoded = pcall(json.decode, result)
+      badged_counts = (ok and type(decoded) == "table") and decoded or {}
+    end
 
     -- Update shared badge_data
     badge_data.counts = badged_counts
