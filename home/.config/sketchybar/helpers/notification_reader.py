@@ -191,7 +191,7 @@ def watch():
                 last_snapshot = snapshot
                 write_cache(notifications)
                 subprocess.run(
-                    ["sketchybar", "--trigger", "wal_changed",
+                    ["/opt/homebrew/bin/sketchybar", "--trigger", "wal_changed",
                      "--trigger", "badge_check"],
                     capture_output=True,
                 )
