@@ -48,7 +48,7 @@ void ax_select_menu_option(AXUIElementRef app, int id) {
 
     if (error == kAXErrorSuccess) {
       uint32_t count = CFArrayGetCount(children_ref);
-      if (id < count) {
+      if ((uint32_t)id < count) {
         AXUIElementRef item = CFArrayGetValueAtIndex(children_ref, id);
         ax_perform_click(item);
       }
@@ -60,7 +60,6 @@ void ax_select_menu_option(AXUIElementRef app, int id) {
 
 void ax_print_menu_options(AXUIElementRef app) {
   AXUIElementRef menubars_ref = NULL;
-  CFTypeRef menubar = NULL;
   CFArrayRef children_ref = NULL;
 
   AXError error = AXUIElementCopyAttributeValue(app,
@@ -74,7 +73,7 @@ void ax_print_menu_options(AXUIElementRef app) {
     if (error == kAXErrorSuccess) {
       uint32_t count = CFArrayGetCount(children_ref);
 
-      for (int i = 1; i < count; i++) {
+      for (uint32_t i = 1; i < count; i++) {
         AXUIElementRef item = CFArrayGetValueAtIndex(children_ref, i);
         CFTypeRef title = ax_get_title(item);
 
@@ -99,7 +98,7 @@ AXUIElementRef ax_get_extra_menu_item(char* alias) {
   if (!window_list) return NULL;
   char owner_buffer[256];
   char name_buffer[256];
-  char buffer[512];
+  char buffer[514];
   int window_count = CFArrayGetCount(window_list);
   for (int i = 0; i < window_count; ++i) {
     CFDictionaryRef dictionary = CFArrayGetValueAtIndex(window_list, i);
