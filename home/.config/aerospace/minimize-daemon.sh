@@ -20,7 +20,7 @@ trap 'FAST_POLLS=3' USR1
 CLEANUP=0
 
 while true; do
-  aerospace list-windows --all --format '%{window-id} %{workspace}' > "$CURR_FILE"
+  /opt/homebrew/bin/aerospace list-windows --all --format '%{window-id} %{workspace}' > "$CURR_FILE"
 
   # Single awk pass: find windows in prev but not curr (just minimized).
   # PREV is already NULL-filtered, so workspaces are always valid.
@@ -37,9 +37,9 @@ while true; do
       orig_ws=$(cat "$mfile")
       rm -f "$mfile"
       if [ "$ws" != "$orig_ws" ]; then
-        aerospace move-node-to-workspace "$orig_ws" --window-id "$wid"
-        aerospace workspace "$orig_ws"
-        sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE="$(aerospace list-workspaces --focused)"
+        /opt/homebrew/bin/aerospace move-node-to-workspace "$orig_ws" --window-id "$wid"
+        /opt/homebrew/bin/aerospace workspace "$orig_ws"
+        /opt/homebrew/bin/sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE="$(/opt/homebrew/bin/aerospace list-workspaces --focused)"
       fi
     fi
   done < "$CURR_FILE"
@@ -54,7 +54,7 @@ while true; do
   # Save curr as prev, triggering badge check only if window list changed
   grep -v NULL "$CURR_FILE" > "$PREV_FILE.new"
   if ! cmp -s "$PREV_FILE" "$PREV_FILE.new"; then
-    sketchybar --trigger badge_check
+    /opt/homebrew/bin/sketchybar --trigger badge_check
   fi
   mv "$PREV_FILE.new" "$PREV_FILE"
 
