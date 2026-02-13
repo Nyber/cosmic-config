@@ -7,19 +7,21 @@ local json = require("helpers.json")
 
 local notif_cache = "/Users/" .. os.getenv("USER") .. "/.config/sketchybar/helpers/.notif_cache.json"
 
-local function get_notified_apps()
+local cached_notified_apps = {}
+
+local function reload_notified_apps()
   local f = io.open(notif_cache, "r")
-  if not f then return {} end
+  if not f then cached_notified_apps = {}; return end
   local result = f:read("*a")
   f:close()
-  if not result or result == "" then return {} end
+  if not result or result == "" then cached_notified_apps = {}; return end
   local ok, notifications = pcall(json.decode, result)
-  if not ok or type(notifications) ~= "table" then return {} end
+  if not ok or type(notifications) ~= "table" then cached_notified_apps = {}; return end
   local apps = {}
   for _, n in ipairs(notifications) do
     if n.app then apps[n.app] = true end
   end
-  return apps
+  cached_notified_apps = apps
 end
 
 local spaces = {}
@@ -30,6 +32,8 @@ local space_paddings = {}
 sbar.add("event", "aerospace_workspace_change")
 sbar.add("event", "badge_check")
 sbar.add("event", "badge_update")
+
+reload_notified_apps()
 
 local focused_workspace = 0
 
@@ -77,8 +81,7 @@ local function update_badge_icons(ws_apps)
 
     for app, _ in pairs(ws_apps[i]) do
       has_app = true
-      local lookup = app_icons[app]
-      local icon = ((lookup == nil) and app_icons["Default"] or lookup)
+      local icon = app_icons[app] or app_icons["Default"]
       if badge_data.counts[app] then
         badge_icons = badge_icons .. icon
         has_badge = true
@@ -136,9 +139,8 @@ local function check_badges(ws_apps)
       remaining = remaining - 1
       if remaining == 0 then
         -- Only badge apps that also have a notification in the bell
-        local notified = get_notified_apps()
         for a in pairs(badged_counts) do
-          if not notified[a] then badged_counts[a] = nil end
+          if not cached_notified_apps[a] then badged_counts[a] = nil end
         end
         -- Update shared badge_data
         badge_data.counts = badged_counts
@@ -289,10 +291,13 @@ space_window_observer:subscribe("badge_check", function()
   local now = os.time()
   if now - last_badge_check_time < 2 then return end
   last_badge_check_time = now
+  reload_notified_apps()
   if last_ws_apps then
     check_badges(last_ws_apps)
   end
 end)
+
+space_window_observer:subscribe("wal_changed", reload_notified_apps)
 
 -- Poll for badge changes every 30 seconds (workspace/app-switch events also trigger checks)
 local badge_poller = sbar.add("item", {

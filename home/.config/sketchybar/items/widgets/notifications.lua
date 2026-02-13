@@ -39,6 +39,7 @@ local notif_cache = helpers_dir .. "/.notif_cache.json"
 -- State
 local current_page = 0
 local cached_notifs = {}
+local cached_popup_width = 300
 
 -- Pre-create all popup slots (never removed, just shown/hidden)
 local slots = {}
@@ -167,25 +168,14 @@ local function update_popup()
   local start_idx = current_page * MAX_VISIBLE + 1
   local end_idx = math.min(start_idx + MAX_VISIBLE - 1, total)
 
-  -- Compute popup width from all notifications
-  local max_len = 0
-  for _, notif in ipairs(cached_notifs) do
-    local tl = #(notif.title or "")
-    local bl = #(notif.body or "")
-    if tl > max_len then max_len = tl end
-    if bl > max_len then max_len = bl end
-  end
-  local popup_width = math.floor(max_len * CHAR_WIDTH + ICON_PAD + SIDE_PAD)
-  if popup_width < 300 then popup_width = 300 end
-  if popup_width > 800 then popup_width = 800 end
+  local popup_width = cached_popup_width
 
   -- Fill visible slots
   for i = 1, MAX_VISIBLE do
     local idx = start_idx + i - 1
     if idx <= end_idx then
       local notif = cached_notifs[idx]
-      local lookup = app_icons[notif.app]
-      local icon = (lookup == nil) and app_icons["Default"] or lookup
+      local icon = app_icons[notif.app] or app_icons["Default"]
       local title = notif.title or ""
       local body = notif.body or ""
 
@@ -295,6 +285,16 @@ clear_item:subscribe("mouse.scrolled", on_scroll)
 -- Refresh from cache
 local function refresh_from_cache()
   cached_notifs = read_notifs()
+  -- Recalculate popup width when notifications change
+  local max_len = 0
+  for _, notif in ipairs(cached_notifs) do
+    local tl = #(notif.title or "")
+    local bl = #(notif.body or "")
+    if tl > max_len then max_len = tl end
+    if bl > max_len then max_len = bl end
+  end
+  cached_popup_width = math.max(300, math.min(800,
+    math.floor(max_len * CHAR_WIDTH + ICON_PAD + SIDE_PAD)))
   update_bell(#cached_notifs)
   update_popup()
 end

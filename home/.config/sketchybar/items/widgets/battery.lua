@@ -77,11 +77,12 @@ battery:subscribe({"routine", "power_source_change", "system_woke"}, function()
   end)
 end)
 
+local battery_popup_open = false
 battery:subscribe("mouse.clicked", function(env)
-  local drawing = battery:query().popup.drawing
-  battery:set( { popup = { drawing = "toggle" } })
+  battery_popup_open = not battery_popup_open
+  battery:set({ popup = { drawing = battery_popup_open } })
 
-  if drawing == "off" then
+  if battery_popup_open then
     sbar.exec("pmset -g batt", function(batt_info)
       local found, _, remaining = batt_info:find(" (%d+:%d+) remaining")
       local label = found and remaining .. "h" or "No estimate"

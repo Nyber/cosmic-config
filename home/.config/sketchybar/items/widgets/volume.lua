@@ -91,9 +91,10 @@ volume_percent:subscribe("volume_change", function(env)
   volume_slider:set({ slider = { percentage = volume } })
 end)
 
+local volume_popup_open = false
 local function volume_collapse_details()
-  local drawing = volume_bracket:query().popup.drawing == "on"
-  if not drawing then return end
+  if not volume_popup_open then return end
+  volume_popup_open = false
   volume_bracket:set({ popup = { drawing = false } })
   sbar.remove('/volume.device\\.*/')
 end
@@ -105,8 +106,8 @@ local function volume_toggle_details(env)
     return
   end
 
-  local should_draw = volume_bracket:query().popup.drawing == "off"
-  if should_draw then
+  if not volume_popup_open then
+    volume_popup_open = true
     volume_bracket:set({ popup = { drawing = true } })
     sbar.exec("SwitchAudioSource -t output -c", function(result)
       current_audio_device = result:sub(1, -2)
