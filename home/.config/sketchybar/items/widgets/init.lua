@@ -1,6 +1,6 @@
 require("items.widgets.battery")
 require("items.widgets.volume")
+require("items.widgets.vpn")
 require("items.widgets.wifi")
 require("items.widgets.screenshot")
 require("items.widgets.orbstack")
-require("items.widgets.vpn")
