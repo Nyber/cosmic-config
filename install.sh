@@ -87,7 +87,7 @@ link_file() {
     # If a parent directory is a symlink into the dotfiles repo, the file is
     # already effectively linked — skip to avoid creating self-referencing symlinks.
     local dest_real
-    dest_real="$(cd "$(dirname "$dest")" 2>/dev/null && pwd -P)"
+    dest_real="$(cd "$(dirname "$dest")" 2>/dev/null && pwd -P || true)"
     if [[ "$dest_real" == "$(dirname "$src")" ]]; then
         skip "$dest"
         return
@@ -126,7 +126,7 @@ link_file "$DOTFILES/computer-rebuild.md" "$HOME/computer-rebuild.md"
 # Load LaunchAgents (idempotent — bootout first to handle re-runs)
 for plist in "$HOME"/Library/LaunchAgents/com.aerospace.minimize-daemon.plist; do
     label="$(defaults read "$plist" Label 2>/dev/null)" || continue
-    launchctl bootout "gui/$(id -u)/$label" 2>/dev/null
+    launchctl bootout "gui/$(id -u)/$label" 2>/dev/null || true
     launchctl bootstrap "gui/$(id -u)" "$plist" 2>/dev/null && ok "Loaded $label" || skip "Could not load $label"
 done
 
