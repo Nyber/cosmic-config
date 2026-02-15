@@ -5,25 +5,6 @@ local app_icons = require("helpers.app_icons")
 local badge_data = require("helpers.badge_data")
 local json = require("helpers.json")
 
-local notif_cache = "/Users/" .. os.getenv("USER") .. "/.config/sketchybar/helpers/.notif_cache.json"
-
-local cached_notified_apps = {}
-
-local function reload_notified_apps()
-  local f = io.open(notif_cache, "r")
-  if not f then cached_notified_apps = {}; return end
-  local result = f:read("*a")
-  f:close()
-  if not result or result == "" then cached_notified_apps = {}; return end
-  local ok, notifications = pcall(json.decode, result)
-  if not ok or type(notifications) ~= "table" then cached_notified_apps = {}; return end
-  local apps = {}
-  for _, n in ipairs(notifications) do
-    if n.app then apps[n.app] = true end
-  end
-  cached_notified_apps = apps
-end
-
 local spaces = {}
 local space_badges = {}
 local space_brackets = {}
@@ -31,9 +12,6 @@ local space_paddings = {}
 
 sbar.add("event", "aerospace_workspace_change")
 sbar.add("event", "badge_check")
-sbar.add("event", "badge_update")
-
-reload_notified_apps()
 
 local focused_workspace = 0
 
@@ -124,7 +102,6 @@ local function check_badges(ws_apps)
     badge_data.total = 0
     update_badge_icons(ws_apps)
     for j = 1, 5 do update_space_appearance(j) end
-    sbar.trigger("badge_update")
     return
   end
 
@@ -141,20 +118,33 @@ local function check_badges(ws_apps)
       badged_counts = (ok and type(decoded) == "table") and decoded or {}
     end
 
-    -- Update shared badge_data
-    badge_data.counts = badged_counts
-    badge_data.by_workspace = {}
-    badge_data.total = 0
-    for j = 1, 5 do
-      badge_data.by_workspace[j] = {}
-      for a in pairs(ws_apps[j]) do
-        if badged_counts[a] then
-          badge_data.by_workspace[j][#badge_data.by_workspace[j] + 1] = a
-          local n = tonumber(badged_counts[a])
-          if n then
-            badge_data.total = badge_data.total + n
-          else
-            badge_data.total = badge_data.total + 1
+    -- Quick diff: skip badge_data recomputation if badges unchanged
+    local changed = false
+    for k, v in pairs(badged_counts) do
+      if badge_data.counts[k] ~= v then changed = true; break end
+    end
+    if not changed then
+      for k in pairs(badge_data.counts) do
+        if not badged_counts[k] then changed = true; break end
+      end
+    end
+
+    if changed then
+      -- Update shared badge_data
+      badge_data.counts = badged_counts
+      badge_data.by_workspace = {}
+      badge_data.total = 0
+      for j = 1, 5 do
+        badge_data.by_workspace[j] = {}
+        for a in pairs(ws_apps[j]) do
+          if badged_counts[a] then
+            badge_data.by_workspace[j][#badge_data.by_workspace[j] + 1] = a
+            local n = tonumber(badged_counts[a])
+            if n then
+              badge_data.total = badge_data.total + n
+            else
+              badge_data.total = badge_data.total + 1
+            end
           end
         end
       end
@@ -162,7 +152,6 @@ local function check_badges(ws_apps)
 
     update_badge_icons(ws_apps)
     for j = 1, 5 do update_space_appearance(j) end
-    sbar.trigger("badge_update")
   end)
 end
 
@@ -294,18 +283,15 @@ space_window_observer:subscribe("badge_check", function()
   local now = os.time()
   if now - last_badge_check_time < 2 then return end
   last_badge_check_time = now
-  reload_notified_apps()
   if last_ws_apps then
     check_badges(last_ws_apps)
   end
 end)
 
-space_window_observer:subscribe("wal_changed", reload_notified_apps)
-
--- Poll for badge changes every 30 seconds (workspace/app-switch events also trigger checks)
+-- Fallback poller for badge changes (primary detection is lsappinfo listener below)
 local badge_poller = sbar.add("item", {
   drawing = false,
-  update_freq = 30,
+  update_freq = 60,
 })
 
 badge_poller:subscribe("routine", function()
@@ -318,6 +304,13 @@ badge_poller:subscribe("routine", function()
     end)
   end
 end)
+
+-- Event-driven badge detection: listen for StatusLabel (dock badge) changes
+sbar.exec(
+  "lsappinfo listen +appInfoKeyChanged +appInfoKeyAdded +appInfoKeyRemoved forever"
+  .. " | grep --line-buffered StatusLabel"
+  .. " | while read -r _; do /opt/homebrew/bin/sketchybar --trigger badge_check; done"
+)
 
 -- Trigger initial workspace highlight
 sbar.exec("aerospace list-workspaces --focused", function(focused)
