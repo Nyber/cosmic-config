@@ -26,4 +26,4 @@ osascript -e "
   end tell"
 
 # Delayed trigger lets BIG-IP finish connecting/disconnecting before we check
-(sleep 3; sketchybar --trigger vpn_change) &
+(sleep 3; /opt/homebrew/bin/sketchybar --trigger vpn_change) &
