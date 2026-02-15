@@ -6,6 +6,7 @@ sbar.bar({
   border_color = colors.bar.border,
   padding_right = 2,
   padding_left = 2,
+  notch_width = 200,
   topmost = "on",
   sticky = true,
 })
