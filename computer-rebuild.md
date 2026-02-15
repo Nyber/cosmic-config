@@ -678,7 +678,7 @@ command -v fzf &>/dev/null && source <(fzf --zsh)
 
 ### /etc/starship.toml
 
-Save with `sudo tee /etc/starship.toml`. Tokyo Night themed single-line prompt with OS icon, username, directory, git info, and command duration. Per-user override: `~/.config/starship.toml`.
+Save with `sudo tee /etc/starship.toml`. Tokyo Night themed single-line prompt with OS icon, username, directory, and git info. Per-user override: `~/.config/starship.toml`.
 
 ```toml
 "$schema" = 'https://starship.rs/config-schema.json'
@@ -688,7 +688,6 @@ $username\
 $directory\
 $git_branch\
 $git_status\
-$cmd_duration\
 $character"""
 
 palette = 'tokyo_night'
@@ -723,9 +722,7 @@ style = "fg:orange"
 format = '[$all_status$ahead_behind]($style)'
 
 [cmd_duration]
-show_milliseconds = false
-format = '[took $duration](fg:comment) '
-min_time = 2000
+disabled = true
 
 [character]
 success_symbol = '[❯](fg:green)'
