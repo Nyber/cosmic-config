@@ -721,9 +721,6 @@ format = '[$symbol $branch]($style) '
 style = "fg:orange"
 format = '[$all_status$ahead_behind]($style)'
 
-[cmd_duration]
-disabled = true
-
 [character]
 success_symbol = '[❯](fg:green)'
 error_symbol = '[❯](fg:red)'
