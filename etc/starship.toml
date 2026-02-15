@@ -5,7 +5,6 @@ $username\
 $directory\
 $git_branch\
 $git_status\
-$cmd_duration\
 $character"""
 
 palette = 'tokyo_night'
@@ -40,9 +39,7 @@ style = "fg:orange"
 format = '[$all_status$ahead_behind]($style)'
 
 [cmd_duration]
-show_milliseconds = false
-format = '[took $duration](fg:comment) '
-min_time = 2000
+disabled = true
 
 [character]
 success_symbol = '[❯](fg:green)'
