@@ -306,8 +306,10 @@ badge_poller:subscribe("routine", function()
 end)
 
 -- Event-driven badge detection: listen for StatusLabel (dock badge) changes
+-- Kill any stale listener from a previous config reload before starting a new one
 sbar.exec(
-  "lsappinfo listen +appInfoKeyChanged +appInfoKeyAdded +appInfoKeyRemoved forever"
+  "pkill -f 'lsappinfo listen' 2>/dev/null; "
+  .. "lsappinfo listen +appInfoKeyChanged +appInfoKeyAdded +appInfoKeyRemoved forever"
   .. " | grep --line-buffered StatusLabel"
   .. " | while read -r _; do /opt/homebrew/bin/sketchybar --trigger badge_check; done"
 )
