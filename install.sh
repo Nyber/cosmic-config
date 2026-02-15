@@ -124,8 +124,7 @@ done < <(find "$DOTFILES/home" -type f -print0)
 link_file "$DOTFILES/computer-rebuild.md" "$HOME/computer-rebuild.md"
 
 # Load LaunchAgents (idempotent — bootout first to handle re-runs)
-for plist in "$HOME"/Library/LaunchAgents/com.aerospace.minimize-daemon.plist \
-             "$HOME"/Library/LaunchAgents/com.user.notif-watcher.plist; do
+for plist in "$HOME"/Library/LaunchAgents/com.aerospace.minimize-daemon.plist; do
     label="$(defaults read "$plist" Label 2>/dev/null)" || continue
     launchctl bootout "gui/$(id -u)/$label" 2>/dev/null
     launchctl bootstrap "gui/$(id -u)" "$plist" 2>/dev/null && ok "Loaded $label" || skip "Could not load $label"
@@ -322,7 +321,7 @@ else
 fi
 
 
-# Do Not Disturb — 24/7 schedule (SketchyBar bell widget handles notifications)
+# Do Not Disturb — 24/7 schedule (suppress native banners)
 DND_CONFIG="$HOME/Library/DoNotDisturb/DB/ModeConfigurations.json"
 if [[ -f "$DND_CONFIG" ]]; then
     DND_RESULT="$(python3 -c "
