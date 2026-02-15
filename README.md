@@ -37,8 +37,7 @@ dotfiles/
 │   ├── .aerospace.toml                 # Tiling window manager config
 │   ├── .gitconfig
 │   ├── Library/LaunchAgents/
-│   │   ├── com.aerospace.minimize-daemon.plist  # Keeps minimize daemon alive
-│   │   └── com.user.notif-watcher.plist         # Notification DB watcher
+│   │   └── com.aerospace.minimize-daemon.plist  # Keeps minimize daemon alive
 │   ├── Pictures/
 │   │   ├── profile.jpg                 # Login screen profile picture
 │   │   └── tokyo-night-apple.png       # Desktop wallpaper
@@ -77,16 +76,14 @@ dotfiles/
 │       │   │       ├── battery.lua
 │       │   │       ├── volume.lua      # Volume + audio device picker
 │       │   │       ├── screenshot.lua
-│       │   │       ├── vpn.lua         # F5 BIG-IP toggle
-│       │   │       └── notifications.lua  # Bell widget (notification center)
+│       │   │       └── vpn.lua         # F5 BIG-IP toggle
 │       │   └── helpers/                # C helpers + SbarLua loader
 │       │       ├── init.lua            # Loads SbarLua + builds C helpers
 │       │       ├── makefile            # Builds C helpers
 │       │       ├── .gitignore          # Ignores compiled binaries
 │       │       ├── app_icons.lua       # App → icon mapping
 │       │       ├── badge_data.lua      # Badge attention data for workspaces
-│       │       ├── json.lua            # JSON parser for notification cache
-│       │       ├── notification_reader.py  # Notification DB reader/dismisser
+│       │       ├── json.lua            # JSON parser
 │       │       ├── vpn_toggle.sh       # VPN connect/disconnect
 │       │       └── menus/              # Native menu bar access (C)
 │       │           ├── makefile
