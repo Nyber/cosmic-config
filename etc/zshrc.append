@@ -7,6 +7,9 @@ export DISABLE_AUTOUPDATER=1
 alias ls='eza --icons --group --links --blocksize'
 alias ll='eza -la --icons --group --links'
 
+# Obsidian terminal lacks Nerd Font — fall back to plain ls
+[[ "$__CFBundleIdentifier" == "md.obsidian" ]] && alias ll='command ls -al'
+
 # Yazi file manager
 alias browse='yazi'
 

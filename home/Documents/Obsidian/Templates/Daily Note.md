@@ -1,4 +1,4 @@
-# {{date:YYYY-MM-DD}} {{date:dddd}}
+# {{date:dddd}}
 
 ## Plan
 - [ ]
@@ -13,4 +13,4 @@
 -
 
 ---
-Previous: [[{{date:YYYY-MM-DD|−1}}]]
+Previous: [[{{date:YYYY-MM-DD|-1}}]] | Next: [[{{date:YYYY-MM-DD|+1}}]]
