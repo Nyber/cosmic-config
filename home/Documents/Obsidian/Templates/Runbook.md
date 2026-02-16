@@ -1,5 +1,3 @@
-# {{title}}
-
 **Service:**
 **Last verified:** {{date:YYYY-MM-DD}}
 
