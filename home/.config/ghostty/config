@@ -12,8 +12,6 @@ cursor-style-blink = false
 
 copy-on-select = clipboard
 
-minimum-contrast = 1
-
 macos-titlebar-style = tabs
 window-theme = auto
 

@@ -3,7 +3,7 @@ local settings = require("settings")
 
 local orbstack = sbar.add("item", "widgets.orbstack", {
   position = "right",
-  update_freq = 5,
+  update_freq = 30,
   icon = {
     string = "󰡨",
     drawing = false,
