@@ -2,8 +2,6 @@ return {
   paddings = 3,
   group_paddings = 5,
 
-  icons = "NerdFont",
-
   font = {
     text = "JetBrainsMono Nerd Font Mono",
     numbers = "JetBrainsMono Nerd Font Mono",
