@@ -621,38 +621,36 @@ brew install zsh-syntax-highlighting
 brew install --cask font-jetbrains-mono-nerd-font
 ```
 
-### Global setup
+### Setup
 
-Everything is configured globally — no per-user `.zshrc` or `.zprofile` needed. Use those only for per-user overrides.
+Everything is configured via per-user dotfiles (`~/.zprofile`, `~/.zshrc`, `~/.config/starship.toml`, `~/.config/eza/theme.yml`) — all symlinked from `~/.dotfiles/home/` by `install.sh`. This avoids the old `/etc/` injection approach where macOS updates would silently wipe the config.
 
 ```bash
-# Root's default shell is /bin/sh — change to zsh so /etc/zshrc is loaded
+# Root's default shell is /bin/sh — change to zsh
 sudo chsh -s /bin/zsh root
 ```
 
-Append to `/etc/zprofile`:
+#### ~/.zprofile
 ```bash
 # Homebrew (global)
 eval "$(/opt/homebrew/bin/brew shellenv)"
 export HOMEBREW_NO_ENV_HINTS=1
+
+# OrbStack CLI integration
+source ~/.orbstack/shell/init.zsh 2>/dev/null || :
 ```
 
-Tokyo Night theme for eza:
-```bash
-sudo mkdir -p /etc/eza
-sudo curl -sL https://raw.githubusercontent.com/eza-community/eza-themes/main/themes/tokyonight.yml -o /etc/eza/theme.yml
-```
-
-Append to `/etc/zshrc`:
+#### ~/.zshrc
 ```bash
 # Disable Claude Code auto-update nag (managed via Homebrew)
 export DISABLE_AUTOUPDATER=1
-# eza config (global — theme at /etc/eza/theme.yml)
-[[ ! -d ~/.config/eza ]] && export EZA_CONFIG_DIR=/etc/eza
 
 # eza aliases
 alias ls='eza --icons --group --links --blocksize'
 alias ll='eza -la --icons --group --links'
+
+# Obsidian terminal lacks Nerd Font — fall back to plain ls
+[[ "$__CFBundleIdentifier" == "md.obsidian" ]] && alias ll='command ls -al'
 
 # Yazi file manager
 alias browse='yazi'
@@ -662,8 +660,7 @@ bindkey '^?' backward-delete-char
 bindkey '^H' backward-delete-char
 bindkey '^[[3~' delete-char
 
-# Starship prompt (global — per-user ~/.config/starship.toml overrides)
-[[ ! -f ~/.config/starship.toml ]] && export STARSHIP_CONFIG=/etc/starship.toml
+# Starship prompt
 eval "$(starship init zsh)"
 
 # Plugins (guard — async PTY conflicts with sudo su)
@@ -676,71 +673,11 @@ fi
 command -v fzf &>/dev/null && source <(fzf --zsh)
 ```
 
-### /etc/starship.toml
+#### ~/.config/starship.toml
+Tokyo Night themed single-line prompt with OS icon, username, directory, and git info. See `home/.config/starship.toml` in dotfiles repo for full config.
 
-Save with `sudo tee /etc/starship.toml`. Tokyo Night themed single-line prompt with OS icon, username, directory, and git info. Per-user override: `~/.config/starship.toml`.
-
-```toml
-"$schema" = 'https://starship.rs/config-schema.json'
-
-format = """$os\
-$username\
-$directory\
-$git_branch\
-$git_status\
-$character"""
-
-palette = 'tokyo_night'
-command_timeout = 200
-
-[os]
-disabled = false
-format = '[$symbol](fg:foreground) '
-
-[os.symbols]
-Macos = ""
-
-[username]
-show_always = true
-format = "[$user]($style) "
-style_root = "fg:red bold"
-style_user = "fg:foreground"
-
-[directory]
-style = "fg:foreground"
-format = '[$path]($style) '
-truncation_length = 3
-truncation_symbol = "…/"
-
-[git_branch]
-symbol = ""
-style = "fg:comment"
-format = '[$symbol $branch]($style) '
-
-[git_status]
-style = "fg:orange"
-format = '[$all_status$ahead_behind]($style)'
-
-[character]
-success_symbol = '[❯](fg:green)'
-error_symbol = '[❯](fg:red)'
-vimcmd_symbol = '[❮](bold fg:green)'
-vimcmd_replace_one_symbol = '[❮](bold fg:purple)'
-vimcmd_replace_symbol = '[❮](bold fg:purple)'
-vimcmd_visual_symbol = '[❮](bold fg:yellow)'
-
-[palettes.tokyo_night]
-foreground = "#c0caf5"
-comment = "#565f89"
-red = "#f7768e"
-orange = "#ff9e64"
-yellow = "#e0af68"
-green = "#9ece6a"
-cyan = "#2ac3de"
-blue = "#7aa2f7"
-purple = "#bb9af7"
-magenta = "#ff007c"
-```
+#### ~/.config/eza/theme.yml
+Tokyo Night color theme for eza. See `home/.config/eza/theme.yml` in dotfiles repo for full config.
 
 ## Obsidian
 
