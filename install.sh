@@ -135,58 +135,10 @@ done
 # ---------------------------------------------------------------------------
 info "Installing system configs (sudo required)"
 
-# Helper: install a block between markers into a system file
-install_block() {
-    local src="$1"    # source append file
-    local dest="$2"   # target system file
-    local marker_begin="# BEGIN dotfiles"
-    local marker_end="# END dotfiles"
-
-    local block
-    block="$marker_begin
-$(cat "$src")
-$marker_end"
-
-    if grep -q "$marker_begin" "$dest" 2>/dev/null; then
-        # Replace existing block — write new content to temp, then swap
-        local tmp block_file
-        tmp="$(mktemp)"
-        block_file="$(mktemp)"
-        printf '%s\n' "$block" > "$block_file"
-        awk -v begin="$marker_begin" -v end="$marker_end" -v bfile="$block_file" '
-            $0 == begin { skip=1; while ((getline line < bfile) > 0) print line; close(bfile); next }
-            $0 == end   { skip=0; next }
-            !skip       { print }
-        ' "$dest" > "$tmp"
-        sudo cp "$tmp" "$dest"
-        rm "$tmp" "$block_file"
-        ok "$dest (block replaced)"
-    else
-        # Append block
-        printf '\n%s\n' "$block" | sudo tee -a "$dest" >/dev/null
-        ok "$dest (block appended)"
-    fi
-}
-
-# /etc/starship.toml — full file copy
-sudo cp "$DOTFILES/etc/starship.toml" /etc/starship.toml
-ok "/etc/starship.toml"
-
-# /etc/eza/theme.yml — full file copy
-sudo mkdir -p /etc/eza
-sudo cp "$DOTFILES/etc/eza/theme.yml" /etc/eza/theme.yml
-ok "/etc/eza/theme.yml"
-
 # Preserve Ghostty TERMINFO through sudo su (SIP blocks /usr/share/terminfo)
 echo 'Defaults env_keep += "TERMINFO"' | sudo tee /etc/sudoers.d/terminfo > /dev/null
 sudo chmod 440 /etc/sudoers.d/terminfo
 ok "/etc/sudoers.d/terminfo (env_keep TERMINFO)"
-
-# /etc/zshrc — append block
-install_block "$DOTFILES/etc/zshrc.append" /etc/zshrc
-
-# /etc/zprofile — append block
-install_block "$DOTFILES/etc/zprofile.append" /etc/zprofile
 
 # ---------------------------------------------------------------------------
 # 8. Yazi Tokyo Night flavor

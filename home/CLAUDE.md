@@ -41,7 +41,7 @@ launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.aerospace.minimize-d
 Idempotent 10-step installer: Xcode CLI tools → Homebrew → brew bundle → SbarLua → services → symlinks → system configs → Yazi flavor → wallpaper → macOS settings.
 
 - `home/` tree is symlinked into `~/` (with backup to `~/.dotfiles-backup/`)
-- `etc/` files are injected into `/etc/` using marker blocks (`# BEGIN/END dotfiles`) for safe re-runs
+- System configs (step 7) only handles sudoers.d TERMINFO — shell config lives entirely in `home/`
 - `link_file()` detects when a parent dir is already symlinked to prevent self-referencing corruption
 
 ### SketchyBar (Lua)
@@ -84,14 +84,15 @@ All in `home/.config/aerospace/`. Consistent pattern: scripts auto-switch worksp
 
 ### Shell Config
 
-All global (no per-user `.zshrc`/`.zprofile`):
-- `etc/zprofile.append` → `/etc/zprofile` — Homebrew shellenv
-- `etc/zshrc.append` → `/etc/zshrc` — eza alias, plugins (zsh-autosuggestions, zsh-syntax-highlighting, fzf), Starship prompt
+Per-user dotfiles (symlinked from `home/` into `~/`):
+- `home/.zprofile` → `~/.zprofile` — Homebrew shellenv, OrbStack
+- `home/.zshrc` → `~/.zshrc` — eza aliases, plugins (zsh-autosuggestions, zsh-syntax-highlighting, fzf), Starship prompt
+- `home/.config/starship.toml` → `~/.config/starship.toml` — Starship config (Tokyo Night palette)
+- `home/.config/eza/theme.yml` → `~/.config/eza/theme.yml` — eza color theme
 
 ## Important Patterns
 
 - **LaunchAgent scripts must use full paths** (`/opt/homebrew/bin/sketchybar`, `/opt/homebrew/bin/aerospace`) — launchd PATH is minimal
-- **Marker-based system config injection** — `install_block()` uses `# BEGIN/END dotfiles` for idempotent `/etc/` updates
 - **Event-driven SketchyBar updates** — AeroSpace scripts trigger custom events rather than polling
 - **Signal-based daemon wakeup** — USR1 signal wakes minimize-daemon from slow sleep immediately
 - **Tokyo Night colors** are centralized in `sketchybar/colors.lua` — use those constants, don't hardcode hex values in items

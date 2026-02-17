@@ -1,7 +1,5 @@
 # Disable Claude Code auto-update nag (managed via Homebrew)
 export DISABLE_AUTOUPDATER=1
-# eza config (global — theme at /etc/eza/theme.yml)
-[[ ! -d ~/.config/eza ]] && export EZA_CONFIG_DIR=/etc/eza
 
 # eza aliases
 alias ls='eza --icons --group --links --blocksize'
@@ -18,8 +16,7 @@ bindkey '^?' backward-delete-char
 bindkey '^H' backward-delete-char
 bindkey '^[[3~' delete-char
 
-# Starship prompt (global — per-user ~/.config/starship.toml overrides)
-[[ ! -f ~/.config/starship.toml ]] && export STARSHIP_CONFIG=/etc/starship.toml
+# Starship prompt
 eval "$(starship init zsh)"
 
 # Plugins (guard — async PTY conflicts with sudo su)
