@@ -1,0 +1,8 @@
+{
+  "terminal:open-terminal.external.darwinExternalDefault": [
+    {
+      "modifiers": ["Ctrl"],
+      "key": "`"
+    }
+  ]
+}
