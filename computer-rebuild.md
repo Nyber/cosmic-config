@@ -807,11 +807,12 @@ sudo chmod 0440 /etc/sudoers.d/wyoung5
 ```
 Drop-in file at `/etc/sudoers.d/wyoung5` — survives macOS updates to the main sudoers file.
 
-### Power management (AC power)
+### Power management
 ```bash
 sudo pmset -c sleep 0 displaysleep 0 disksleep 0 standby 0 powernap 0
+sudo pmset -b displaysleep 0
 ```
-Prevents sleep, display off, disk sleep, standby, and Power Nap when plugged in. Battery defaults are unchanged.
+Prevents sleep, display off, disk sleep, standby, and Power Nap when plugged in. Battery display sleep also disabled — macOS 26 Lock Screen "Turn display off" uses the battery profile even when on AC.
 
 ### Finder
 ```bash
