@@ -193,9 +193,11 @@ else
     ok "Passwordless sudo configured"
 fi
 
-# Power management (AC: never sleep; battery: unchanged defaults)
+# Power management (AC: never sleep; battery: display stays on)
 sudo pmset -c sleep 0 displaysleep 0 disksleep 0 standby 0 powernap 0
+sudo pmset -b displaysleep 0
 ok "AC power: sleep, display sleep, disk sleep, standby, powernap disabled"
+ok "Battery: display sleep disabled"
 
 # fn key: do nothing alone (Karabiner handles fn+key → cmd+option+key for AeroSpace)
 defaults write com.apple.HIToolbox AppleFnUsageType -int 0
