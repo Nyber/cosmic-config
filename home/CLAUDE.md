@@ -50,7 +50,7 @@ Entry: `sketchybarrc` → `helpers/init.lua` (sets up SbarLua, runs `make` to au
 
 **Items** (`items/init.lua` loads all):
 - `apple.lua` — Custom Apple menu popup (replaces native). Opens Apps via Spotlight, App Store, power controls.
-- `spaces.lua` — **Most complex item.** Workspace indicators with badge attention (red icons for apps with notifications). Uses C helper `badges/badges` to read dock badge counts. Real-time detection via `lsappinfo listen` pipe that triggers `badge_check` events on dock badge changes, with 60s routine fallback. Debounces updates with `update_pending` flag to avoid redundant subprocess calls.
+- `spaces.lua` — **Most complex item.** Workspace indicators with badge attention (red icons for apps with notifications). Uses C helper `badges/badges` to read dock badge counts. Real-time detection via `lsappinfo listen` pipe that triggers `badge_check` events on dock badge changes, with 60s routine fallback. Debounces updates with `update_pending`/`recheck_needed` flags — coalesces rapid events while guaranteeing the final state is always queried.
 - `menus.lua` — Native app menu items via C helper. Supports `swap_menus_and_spaces` toggle.
 - `front_app.lua` — Current app name. Click triggers `swap_menus_and_spaces` to toggle between menus and workspace indicators.
 - `calendar.lua` — Date/time display, click opens Calendar.app.
