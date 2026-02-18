@@ -236,19 +236,17 @@ local space_window_observer = sbar.add("item", {
 })
 
 local update_pending = false
+local recheck_needed = false
 local last_window_update_time = 0
 local function update_space_icons(env)
-  if update_pending then return end
+  if update_pending then
+    recheck_needed = true
+    return
+  end
   update_pending = true
   sbar.exec("aerospace list-windows --all --format '%{workspace}|%{app-name}'", function(result)
     update_pending = false
-    -- Use env, or fall back to cached focused_workspace (avoids extra subprocess)
-    local focused_ws
-    if env and env.FOCUSED_WORKSPACE and env.FOCUSED_WORKSPACE ~= "" then
-      focused_ws = env.FOCUSED_WORKSPACE:gsub("%s+", "")
-    else
-      focused_ws = tostring(focused_workspace)
-    end
+    local focused_ws = tostring(focused_workspace)
 
     local ws_apps = parse_window_list(result)
     last_window_update_time = os.time()
@@ -271,6 +269,11 @@ local function update_space_icons(env)
     end
 
     check_badges(ws_apps)
+
+    if recheck_needed then
+      recheck_needed = false
+      update_space_icons()
+    end
   end)
 end
 
