@@ -13,7 +13,7 @@ default-root-container-orientation = 'auto'
 on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
 
 # Keep workspaces 1-5 alive
-persistent-workspaces = ["1", "2", "3", "4", "5"]
+persistent-workspaces = ["1", "2", "3", "4", "5", "6"]
 
 exec-on-workspace-change = ['/bin/bash', '-c', '$HOME/.config/aerospace/workspace-changed.sh']
 
