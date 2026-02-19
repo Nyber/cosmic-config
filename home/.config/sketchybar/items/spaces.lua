@@ -5,6 +5,8 @@ local app_icons = require("helpers.app_icons")
 local badge_data = require("helpers.badge_data")
 local json = require("helpers.json")
 
+local NUM_SPACES = 9
+
 local spaces = {}
 local space_badges = {}
 local space_brackets = {}
@@ -34,12 +36,12 @@ end
 
 local function parse_window_list(result)
   local ws_apps = {}
-  for i = 1, 5 do ws_apps[i] = {} end
+  for i = 1, NUM_SPACES do ws_apps[i] = {} end
   for line in result:gmatch("[^\r\n]+") do
     local ws, app = line:match("^(%d+)|(.+)$")
     if ws and app then
       local n = tonumber(ws)
-      if n and n >= 1 and n <= 5 then
+      if n and n >= 1 and n <= NUM_SPACES then
         ws_apps[n][app] = true
       end
     end
@@ -51,7 +53,7 @@ end
 local last_ws_apps = nil
 
 local function update_badge_icons(ws_apps)
-  for i = 1, 5 do
+  for i = 1, NUM_SPACES do
     local normal_icons = ""
     local badge_icons = ""
     local has_app = false
@@ -85,7 +87,7 @@ local function check_badges(ws_apps)
   last_ws_apps = ws_apps
 
   local unique_apps = {}
-  for i = 1, 5 do
+  for i = 1, NUM_SPACES do
     for app in pairs(ws_apps[i]) do
       unique_apps[app] = true
     end
@@ -101,7 +103,7 @@ local function check_badges(ws_apps)
     badge_data.by_workspace = {}
     badge_data.total = 0
     update_badge_icons(ws_apps)
-    for j = 1, 5 do update_space_appearance(j) end
+    for j = 1, NUM_SPACES do update_space_appearance(j) end
     return
   end
 
@@ -134,7 +136,7 @@ local function check_badges(ws_apps)
       badge_data.counts = badged_counts
       badge_data.by_workspace = {}
       badge_data.total = 0
-      for j = 1, 5 do
+      for j = 1, NUM_SPACES do
         badge_data.by_workspace[j] = {}
         for a in pairs(ws_apps[j]) do
           if badged_counts[a] then
@@ -151,11 +153,11 @@ local function check_badges(ws_apps)
     end
 
     update_badge_icons(ws_apps)
-    for j = 1, 5 do update_space_appearance(j) end
+    for j = 1, NUM_SPACES do update_space_appearance(j) end
   end)
 end
 
-for i = 1, 5, 1 do
+for i = 1, NUM_SPACES do
   local space = sbar.add("item", "space." .. i, {
     icon = {
       font = { family = settings.font.numbers },
@@ -251,7 +253,7 @@ local function update_space_icons(env)
     local ws_apps = parse_window_list(result)
     last_window_update_time = os.time()
 
-    for i = 1, 5 do
+    for i = 1, NUM_SPACES do
       local has_app = false
       for _, _ in pairs(ws_apps[i]) do
         has_app = true
