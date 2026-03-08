@@ -11,12 +11,8 @@ if pgrep -xi "$app" > /dev/null; then
         osascript -e "
             tell application \"$app\" to activate
             delay 0.3
-            tell application \"System Events\" to tell process \"$app\"
-                try
-                    click menu item \"New Window\" of menu \"File\" of menu bar 1
-                on error
-                    click menu item \"New window\" of menu \"File\" of menu bar 1
-                end try
+            tell application \"System Events\"
+                keystroke \"n\" using command down
             end tell
         "
         sleep 0.5

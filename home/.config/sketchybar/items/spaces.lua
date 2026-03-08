@@ -314,9 +314,11 @@ end)
 -- Kill any stale listener from a previous config reload before starting a new one
 sbar.exec(
   "pkill -f 'lsappinfo listen' 2>/dev/null; "
+  .. "while true; do "
   .. "lsappinfo listen +appInfoKeyChanged +appInfoKeyAdded +appInfoKeyRemoved forever"
   .. " | grep --line-buffered StatusLabel"
-  .. " | while read -r _; do /opt/homebrew/bin/sketchybar --trigger badge_check; done"
+  .. " | while read -r _; do /opt/homebrew/bin/sketchybar --trigger badge_check; done; "
+  .. "sleep 2; done"
 )
 
 -- Trigger initial workspace highlight

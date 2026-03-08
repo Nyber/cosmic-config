@@ -109,6 +109,7 @@ local function volume_toggle_details(env)
   if not volume_popup_open then
     volume_popup_open = true
     volume_bracket:set({ popup = { drawing = true } })
+    sbar.remove('/volume.device\\.*/')
     sbar.exec("/opt/homebrew/bin/SwitchAudioSource -t output -c", function(result)
       current_audio_device = result:sub(1, -2)
       sbar.exec("/opt/homebrew/bin/SwitchAudioSource -a -t output", function(available)
