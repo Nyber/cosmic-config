@@ -141,19 +141,7 @@ sudo chmod 440 /etc/sudoers.d/terminfo
 ok "/etc/sudoers.d/terminfo (env_keep TERMINFO)"
 
 # ---------------------------------------------------------------------------
-# 8. Yazi Tokyo Night flavor
-# ---------------------------------------------------------------------------
-info "Yazi Tokyo Night flavor"
-YAZI_FLAVOR_DIR="$HOME/.config/yazi/flavors/tokyo-night.yazi"
-if [[ -d "$YAZI_FLAVOR_DIR" ]]; then
-    ok "Already cloned"
-else
-    git clone https://github.com/BennyOe/tokyo-night.yazi.git "$YAZI_FLAVOR_DIR"
-    ok "Cloned tokyo-night.yazi"
-fi
-
-# ---------------------------------------------------------------------------
-# 9. Wallpaper
+# 8. Wallpaper
 # ---------------------------------------------------------------------------
 info "Setting wallpaper"
 WALLPAPER="$HOME/Pictures/tokyo-night-apple.png"
@@ -171,7 +159,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# 10. macOS settings
+# 9. macOS settings
 # ---------------------------------------------------------------------------
 info "macOS settings"
 

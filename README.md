@@ -1,6 +1,6 @@
 # Dotfiles
 
-macOS setup — AeroSpace, Karabiner-Elements, Ghostty, SketchyBar, JankyBorders, Yazi, zsh, Starship, eza.
+macOS setup — AeroSpace, Karabiner-Elements, Ghostty, SketchyBar, JankyBorders, zsh, Starship, eza.
 
 ## Install
 
@@ -20,9 +20,8 @@ Clone anywhere you like — the install script detects its own location.
 5. Starts **JankyBorders** and **SketchyBar** services
 6. **Symlinks** everything under `home/` into `~/` (backs up existing files to `~/.dotfiles-backup/`), plus `computer-rebuild.md` → `~/`
 7. Installs **system configs** into `/etc/` with marker-managed blocks (`# BEGIN/END dotfiles`)
-8. Clones **Yazi Tokyo Night** flavor
-9. Sets **desktop wallpaper**
-10. Applies **macOS settings** (dark mode, Dock, Finder, key repeat, passwordless sudo, display sleep, auto-hide menu bar, login screen, Citrix `.ica` association)
+8. Sets **desktop wallpaper**
+9. Applies **macOS settings** (dark mode, Dock, Finder, key repeat, passwordless sudo, display sleep, auto-hide menu bar, login screen, Citrix `.ica` association)
 
 The script is idempotent — safe to re-run.
 
@@ -88,9 +87,6 @@ dotfiles/
 │       │       └── menus/              # Native menu bar access (C)
 │       │           ├── makefile
 │       │           └── menus.c
-│       └── yazi/                       # File manager
-│           ├── keymap.toml
-│           └── theme.toml
 ├── etc/                                # System configs (copied to /etc/)
 │   ├── zshrc.append                    # Appended to /etc/zshrc
 │   ├── zprofile.append                 # Appended to /etc/zprofile
@@ -146,4 +142,4 @@ Karabiner auto-reloads on file change.
 
 ## Theme
 
-Tokyo Night Storm across everything — Ghostty, SketchyBar, Starship, eza, JankyBorders, Yazi.
+Tokyo Night Storm across everything — Ghostty, SketchyBar, Starship, eza, JankyBorders.

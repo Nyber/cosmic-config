@@ -1,4 +1,0 @@
-[[mgr.prepend_keymap]]
-on = ["S"]
-run = 'shell "$SHELL" --block'
-desc = "Open shell here"

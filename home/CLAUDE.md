@@ -38,7 +38,7 @@ launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.aerospace.minimize-d
 
 ### install.sh
 
-Idempotent 10-step installer: Xcode CLI tools → Homebrew → brew bundle → SbarLua → services → symlinks → system configs → Yazi flavor → wallpaper → macOS settings.
+Idempotent 9-step installer: Xcode CLI tools → Homebrew → brew bundle → SbarLua → services → symlinks → system configs → wallpaper → macOS settings.
 
 - `home/` tree is symlinked into `~/` (with backup to `~/.dotfiles-backup/`)
 - System configs (step 7) only handles sudoers.d TERMINFO — shell config lives entirely in `home/`
