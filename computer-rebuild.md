@@ -652,9 +652,6 @@ alias ll='eza -la --icons --group --links'
 # Obsidian terminal lacks Nerd Font — fall back to plain ls
 [[ "$__CFBundleIdentifier" == "md.obsidian" ]] && alias ll='command ls -al'
 
-# Yazi file manager
-alias browse='yazi'
-
 # Explicit key bindings (fallback if terminfo is missing)
 bindkey '^?' backward-delete-char
 bindkey '^H' backward-delete-char
@@ -688,33 +685,6 @@ brew install --cask obsidian
 
 ### Theme
 Settings > Appearance > Themes > Manage > search **"Tokyo Night"** (by tcmmichaelb139) > install and activate.
-
-## Yazi (Terminal File Manager)
-
-### Install
-```bash
-brew install yazi
-```
-
-### Theme
-```bash
-git clone https://github.com/BennyOe/tokyo-night.yazi.git ~/.config/yazi/flavors/tokyo-night.yazi
-```
-
-Save to `~/.config/yazi/theme.toml`:
-```toml
-[flavor]
-dark = "tokyo-night"
-```
-
-### Keymap
-Save to `~/.config/yazi/keymap.toml`:
-```toml
-[[mgr.prepend_keymap]]
-on = ["S"]
-run = 'shell "$SHELL" --block'
-desc = "Open shell here"
-```
 
 ## Wallpaper
 
