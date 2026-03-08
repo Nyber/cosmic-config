@@ -43,17 +43,19 @@ int main(int argc, char *argv[]) {
 
         while (fgets(line, sizeof(line), fp)) {
             // Parse: "StatusLabel"={ "label"="3" }
-            char *p = strstr(line, "\"label\"=\"");
-            if (p) {
-                p += strlen("\"label\"=\"");
-                char *end = strchr(p, '"');
-                if (end && end > p) {
-                    size_t len = (size_t)(end - p);
-                    if (len >= sizeof(label)) len = sizeof(label) - 1;
-                    memcpy(label, p, len);
-                    label[len] = '\0';
-                }
-            }
+            // Flexible: tolerates whitespace around = and both quote styles
+            char *p = strstr(line, "\"label\"");
+            if (!p) continue;
+            char *eq = strchr(p + 7, '=');
+            if (!eq) continue;
+            char *q1 = strchr(eq + 1, '"');
+            if (!q1) continue;
+            char *q2 = strchr(q1 + 1, '"');
+            if (!q2 || q2 <= q1 + 1) continue;
+            size_t len = (size_t)(q2 - q1 - 1);
+            if (len >= sizeof(label)) len = sizeof(label) - 1;
+            memcpy(label, q1 + 1, len);
+            label[len] = '\0';
         }
         pclose(fp);
 

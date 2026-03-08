@@ -315,7 +315,7 @@ end)
 sbar.exec(
   "pkill -f 'lsappinfo listen' 2>/dev/null; "
   .. "while true; do "
-  .. "lsappinfo listen +appInfoKeyChanged +appInfoKeyAdded +appInfoKeyRemoved forever"
+  .. "lsappinfo listen +appInfoKeyChanged +appInfoKeyAdded +appInfoKeyRemoved forever 2>/dev/null"
   .. " | grep --line-buffered StatusLabel"
   .. " | while read -r _; do /opt/homebrew/bin/sketchybar --trigger badge_check; done; "
   .. "sleep 2; done"

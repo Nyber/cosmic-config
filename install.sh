@@ -49,8 +49,12 @@ SBARLUA_DIR="$HOME/.local/share/sketchybar_lua"
 if [[ -f "$SBARLUA_DIR/sketchybar.so" ]]; then
     ok "SbarLua already installed"
 else
+    SBARLUA_COMMIT="dba9cc4"  # Pin to known-good. Update after testing new versions.
     (git clone https://github.com/FelixKratz/SbarLua.git /tmp/SbarLua \
-      && cd /tmp/SbarLua && make install && rm -rf /tmp/SbarLua)
+      && cd /tmp/SbarLua \
+      && git checkout "$SBARLUA_COMMIT" \
+      && make install \
+      && rm -rf /tmp/SbarLua)
     ok "SbarLua installed"
 fi
 
@@ -249,61 +253,6 @@ if $DOCK_CHANGED; then
     ok "Dock: autohide, small icons, stripped apps, Quick Note hot corner"
 else
     ok "Dock: already configured"
-fi
-
-
-# Do Not Disturb — 24/7 schedule (suppress native banners)
-DND_CONFIG="$HOME/Library/DoNotDisturb/DB/ModeConfigurations.json"
-if [[ -f "$DND_CONFIG" ]]; then
-    DND_RESULT="$(python3 -c "
-import json, time, sys, shutil
-with open(sys.argv[1]) as f:
-    data = json.load(f)
-try:
-    mode = data['data'][0]['modeConfigurations']['com.apple.donotdisturb.mode.default']
-    triggers = mode['triggers']['triggers']
-except (KeyError, IndexError, TypeError):
-    print('skip')
-    sys.exit(0)
-sched = None
-for t in triggers:
-    if t.get('class') == 'DNDModeConfigurationScheduleTrigger':
-        sched = t
-        break
-if (sched and sched.get('enabledSetting') == 2
-    and sched.get('timePeriodStartTimeHour') == 0
-    and sched.get('timePeriodEndTimeHour') == 23
-    and sched.get('timePeriodEndTimeMinute') == 59
-    and sched.get('timePeriodWeekdays') == 127):
-    print('ok')
-    sys.exit(0)
-if sched is None:
-    sched = {'class': 'DNDModeConfigurationScheduleTrigger', 'creationDate': time.time() - 978307200, 'timePeriodWeekdays': 127}
-    triggers.append(sched)
-sched['enabledSetting'] = 2
-sched['timePeriodStartTimeHour'] = 0
-sched['timePeriodStartTimeMinute'] = 0
-sched['timePeriodEndTimeHour'] = 23
-sched['timePeriodEndTimeMinute'] = 59
-sched['timePeriodWeekdays'] = 127
-now = time.time() - 978307200
-mode['lastModified'] = now
-data['header']['timestamp'] = now
-shutil.copy2(sys.argv[1], sys.argv[1] + '.bak')
-with open(sys.argv[1], 'w') as f:
-    json.dump(data, f)
-print('changed')
-" "$DND_CONFIG")"
-    if [[ "$DND_RESULT" == "changed" ]]; then
-        killall -HUP donotdisturbd 2>/dev/null || true
-        ok "Do Not Disturb 24/7 schedule (bell widget handles notifications)"
-    elif [[ "$DND_RESULT" == "skip" ]]; then
-        skip "DND config structure unexpected"
-    else
-        ok "Do Not Disturb already configured"
-    fi
-else
-    skip "DND config not found (enable manually: System Settings → Focus → DND → Schedule 24/7)"
 fi
 
 # Citrix .ica file association
