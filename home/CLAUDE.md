@@ -63,7 +63,7 @@ Entry: `sketchybarrc` → `helpers/init.lua` (sets up SbarLua, runs `make` to au
 - C helpers compiled via makefiles: `badges/`, `menus/`, `volume/` — each in its own subdir with a makefile, binaries output to `<subdir>/bin/`
 - `menus/` uses private `SkyLight` framework + Carbon for Accessibility API — temporarily shows native menu bar via `SLSSetMenuBarInsetAndAlpha` when selecting extra menu bar items
 - `app_icons.lua` — 340+ app-to-icon mappings (sketchybar-app-font glyphs)
-- `badge_data.lua` — Shared mutable state between `spaces.lua` and the minimize daemon
+- `badge_data.lua` — Shared badge state for `spaces.lua` (minimize daemon triggers rechecks via `sketchybar --trigger badge_check`)
 - `json.lua` — Pure-Lua JSON decoder, fallback for when `sbar.exec` doesn't auto-parse
 - Top-level `helpers/makefile` orchestrates subdirectory builds
 
