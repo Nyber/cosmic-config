@@ -44,11 +44,18 @@ while true; do
     fi
   done < "$CURR_FILE"
 
-  # Every ~60s, purge .minimized files older than 10 min (orphaned windows)
+  # Every ~60s, purge .minimized files for windows that no longer exist
   CLEANUP=$((CLEANUP + 1))
   if [ "$CLEANUP" -ge 30 ]; then
     CLEANUP=0
-    find "$MDIR" -name ".minimized-*" -mmin +10 -delete 2>/dev/null
+    for mfile in "$MDIR"/.minimized-*; do
+      [ -f "$mfile" ] || continue
+      wid="${mfile##*.minimized-}"
+      # Window gone from both lists = closed while minimized — safe to delete
+      if ! grep -q "^$wid " "$CURR_FILE" && ! grep -q "^$wid " "$PREV_FILE"; then
+        rm -f "$mfile"
+      fi
+    done
   fi
 
   # Save curr as prev, triggering badge check only if window list changed

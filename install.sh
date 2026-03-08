@@ -120,9 +120,6 @@ while IFS= read -r -d '' file; do
     link_file "$file" "$HOME/$rel"
 done < <(find "$DOTFILES/home" -type f -print0)
 
-# computer-rebuild.md → ~/
-link_file "$DOTFILES/computer-rebuild.md" "$HOME/computer-rebuild.md"
-
 # Load LaunchAgents (idempotent — bootout first to handle re-runs)
 for plist in "$HOME"/Library/LaunchAgents/com.aerospace.minimize-daemon.plist; do
     label="$(defaults read "$plist" Label 2>/dev/null)" || continue
@@ -162,14 +159,6 @@ fi
 # 9. macOS settings
 # ---------------------------------------------------------------------------
 info "macOS settings"
-
-# Root shell → zsh
-if [[ "$(dscl . -read /Users/root UserShell 2>/dev/null | awk '{print $2}')" == "/bin/zsh" ]]; then
-    ok "Root shell already zsh"
-else
-    sudo chsh -s /bin/zsh root
-    ok "Root shell set to zsh"
-fi
 
 # Passwordless sudo
 SUDOERS_FILE="/etc/sudoers.d/$(whoami)"
@@ -267,7 +256,7 @@ fi
 DND_CONFIG="$HOME/Library/DoNotDisturb/DB/ModeConfigurations.json"
 if [[ -f "$DND_CONFIG" ]]; then
     DND_RESULT="$(python3 -c "
-import json, time, sys
+import json, time, sys, shutil
 with open(sys.argv[1]) as f:
     data = json.load(f)
 try:
@@ -300,6 +289,7 @@ sched['timePeriodWeekdays'] = 127
 now = time.time() - 978307200
 mode['lastModified'] = now
 data['header']['timestamp'] = now
+shutil.copy2(sys.argv[1], sys.argv[1] + '.bak')
 with open(sys.argv[1], 'w') as f:
     json.dump(data, f)
 print('changed')
@@ -327,38 +317,6 @@ fi
 # Login screen: show name/password fields instead of user list
 sudo defaults write /Library/Preferences/com.apple.loginwindow SHOWFULLNAME -bool true
 ok "Login screen: name/password fields"
-
-# Login screen profile picture (Apple logo, Tokyo Night background)
-PROFILE_PIC="$HOME/Pictures/profile.jpg"
-if [[ -f "$PROFILE_PIC" ]]; then
-    CURRENT_USER="$(whoami)"
-    PROFILE_PIC_REAL="$(readlink -f "$PROFILE_PIC" 2>/dev/null || echo "$PROFILE_PIC")"
-    printf '0x0A 0x5C 0x3A 0x2C dsRecTypeStandard:Users 2 dsAttrTypeStandard:RecordName externalbinary:dsAttrTypeStandard:JPEGPhoto\n%s:%s\n' "$CURRENT_USER" "$PROFILE_PIC_REAL" > /tmp/user_pic.dsimport
-    sudo dsimport /tmp/user_pic.dsimport /Local/Default M 2>/dev/null
-    rm -f /tmp/user_pic.dsimport
-    sudo dscl . -delete /Users/"$CURRENT_USER" Picture 2>/dev/null
-    sudo dscl . -create /Users/"$CURRENT_USER" Picture "$PROFILE_PIC"
-    ok "Login screen profile picture (Apple logo, Tokyo Night background)"
-else
-    skip "Profile picture not found"
-fi
-
-# Lock screen wallpaper (macOS can reset this on updates)
-WALLPAPER="$HOME/Pictures/tokyo-night-apple.png"
-if [[ -f "$WALLPAPER" ]]; then
-    USER_UUID="$(dscl . -read /Users/"$(whoami)" GeneratedUID 2>/dev/null | awk '{print $2}')"
-    LOCKSCREEN_DIR="/Library/Caches/Desktop Pictures/$USER_UUID"
-    if [[ -n "$USER_UUID" && -d "$LOCKSCREEN_DIR" ]]; then
-        sudo cp "$WALLPAPER" "$LOCKSCREEN_DIR/lockscreen.png"
-        sudo chown "$(whoami):_securityagent" "$LOCKSCREEN_DIR/lockscreen.png"
-        sudo chmod 644 "$LOCKSCREEN_DIR/lockscreen.png"
-        ok "Lock screen wallpaper"
-    else
-        skip "Lock screen cache directory not found"
-    fi
-else
-    skip "Wallpaper image not found"
-fi
 
 # ---------------------------------------------------------------------------
 info "Done! You may need to log out/restart for some changes to take effect."
