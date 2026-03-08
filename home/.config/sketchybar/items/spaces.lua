@@ -227,7 +227,7 @@ for i = 1, NUM_SPACES do
   end)
 
   space:subscribe("mouse.clicked", function(env)
-    sbar.exec("aerospace workspace " .. i)
+    sbar.exec("/opt/homebrew/bin/aerospace workspace " .. i)
   end)
 end
 
@@ -246,7 +246,7 @@ local function update_space_icons(env)
     return
   end
   update_pending = true
-  sbar.exec("aerospace list-windows --all --format '%{workspace}|%{app-name}'", function(result)
+  sbar.exec("/opt/homebrew/bin/aerospace list-windows --all --format '%{workspace}|%{app-name}'", function(result)
     update_pending = false
     local focused_ws = tostring(focused_workspace)
 
@@ -303,7 +303,7 @@ badge_poller:subscribe("routine", function()
   if os.time() - last_window_update_time < 10 and last_ws_apps then
     check_badges(last_ws_apps)
   else
-    sbar.exec("aerospace list-windows --all --format '%{workspace}|%{app-name}'", function(result)
+    sbar.exec("/opt/homebrew/bin/aerospace list-windows --all --format '%{workspace}|%{app-name}'", function(result)
       last_window_update_time = os.time()
       check_badges(parse_window_list(result))
     end)
@@ -320,7 +320,7 @@ sbar.exec(
 )
 
 -- Trigger initial workspace highlight
-sbar.exec("aerospace list-workspaces --focused", function(focused)
+sbar.exec("/opt/homebrew/bin/aerospace list-workspaces --focused", function(focused)
   focused = focused:gsub("%s+", "")
   sbar.trigger("aerospace_workspace_change",
     { FOCUSED_WORKSPACE = focused })

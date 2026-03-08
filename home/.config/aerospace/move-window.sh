@@ -4,7 +4,7 @@
 # Then refresh SketchyBar.
 TARGET="$1"
 sleep 0.1
-if [ -z "$(aerospace list-windows --workspace focused)" ]; then
-  aerospace workspace "$TARGET"
+if [ -z "$(/opt/homebrew/bin/aerospace list-windows --workspace focused)" ]; then
+  /opt/homebrew/bin/aerospace workspace "$TARGET"
 fi
-sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE="$(aerospace list-workspaces --focused)"
+/opt/homebrew/bin/sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE="$(/opt/homebrew/bin/aerospace list-workspaces --focused)"

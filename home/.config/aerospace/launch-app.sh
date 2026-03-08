@@ -3,7 +3,7 @@
 # Usage: launch-app.sh <AppName>  (e.g., Safari, Obsidian, Ghostty)
 app="$1"
 [ -z "$app" ] && exit 1
-current_ws=$(aerospace list-workspaces --focused)
+current_ws=$(/opt/homebrew/bin/aerospace list-workspaces --focused)
 
 if pgrep -xi "$app" > /dev/null; then
     window_count=$(osascript -e "tell application \"System Events\" to return count of windows of process \"$app\"" 2>/dev/null)
@@ -20,8 +20,8 @@ if pgrep -xi "$app" > /dev/null; then
             end tell
         "
         sleep 0.5
-        aerospace move-node-to-workspace "$current_ws"
-        aerospace workspace "$current_ws"
+        /opt/homebrew/bin/aerospace move-node-to-workspace "$current_ws"
+        /opt/homebrew/bin/aerospace workspace "$current_ws"
     else
         open -a "$app"
     fi
