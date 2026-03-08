@@ -294,6 +294,8 @@ space_window_observer:subscribe("badge_check", function()
 end)
 
 -- Fallback poller for badge changes (primary detection is lsappinfo listener below)
+-- NOTE: SbarLua routine timer is broken (callbacks never auto-fire), so this
+-- only works when triggered externally via `sketchybar --trigger routine`.
 local badge_poller = sbar.add("item", {
   drawing = false,
   update_freq = 60,
