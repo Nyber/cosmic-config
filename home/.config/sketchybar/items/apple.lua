@@ -32,7 +32,7 @@ local function popup_item(icon_str, label_str, click)
     position = "popup." .. apple.name,
     icon = { string = icon_str, font = { family = settings.font.text, size = 14.0 }, padding_left = 8, padding_right = 4 },
     label = { string = label_str, padding_right = 8 },
-    click_script = "sketchybar --set " .. apple.name .. " popup.drawing=off && " .. click .. " ; sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE=$(aerospace list-workspaces --focused)"
+    click_script = "/opt/homebrew/bin/sketchybar --set " .. apple.name .. " popup.drawing=off && " .. click .. " ; /opt/homebrew/bin/sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE=$(/opt/homebrew/bin/aerospace list-workspaces --focused)"
   })
 end
 

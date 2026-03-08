@@ -109,9 +109,9 @@ local function volume_toggle_details(env)
   if not volume_popup_open then
     volume_popup_open = true
     volume_bracket:set({ popup = { drawing = true } })
-    sbar.exec("SwitchAudioSource -t output -c", function(result)
+    sbar.exec("/opt/homebrew/bin/SwitchAudioSource -t output -c", function(result)
       current_audio_device = result:sub(1, -2)
-      sbar.exec("SwitchAudioSource -a -t output", function(available)
+      sbar.exec("/opt/homebrew/bin/SwitchAudioSource -a -t output", function(available)
         local counter = 0
 
         for device in string.gmatch(available, '[^\r\n]+') do
@@ -125,7 +125,7 @@ local function volume_toggle_details(env)
             align = "center",
             label = { string = device, color = color },
             click_script = string.format(
-            'SwitchAudioSource -s "%s" && sketchybar --set /volume.device\\.*/ label.color=0x%x --set $NAME label.color=0x%x',
+            '/opt/homebrew/bin/SwitchAudioSource -s "%s" && /opt/homebrew/bin/sketchybar --set /volume.device\\.*/ label.color=0x%x --set $NAME label.color=0x%x',
             device, colors.grey, colors.white
           ),
           })
