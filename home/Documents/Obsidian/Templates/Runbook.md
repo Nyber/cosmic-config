@@ -1,5 +1,5 @@
 **Service:**
-**Last verified:** {{date:YYYY-MM-DD}}
+**Last verified:** <% tp.date.now("YYYY-MM-DD") %>
 
 ## Symptoms
 

@@ -1,6 +1,7 @@
 [
   "terminal",
   "calendar",
-  "calendar-beta",
-  "templater-obsidian"
+  "templater-obsidian",
+  "dataview",
+  "obsidian-enhancing-export"
 ]
