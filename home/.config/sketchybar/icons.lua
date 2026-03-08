@@ -3,8 +3,6 @@ return {
   loading = "",
   apple = "",
   gear = "",
-  cpu = "",
-  clipboard = "Missing Icon",
 
   switch = {
     on = "󱨥",
@@ -26,19 +24,12 @@ return {
     charging = ""
   },
   wifi = {
-    upload = "",
-    download = "",
     connected = "󰖩",
     disconnected = "󰖪",
-    router = "Missing Icon"
   },
   media = {
     back = "",
     forward = "",
     play_pause = "",
-  },
-  bell = {
-    on = "󰂞",
-    off = "󰂚",
   },
 }
