@@ -66,4 +66,9 @@ cat > "$OUTPUT" << EOF
 }
 EOF
 
+if ! python3 -m json.tool "$OUTPUT" > /dev/null 2>&1; then
+    echo "ERROR: Generated invalid JSON in $OUTPUT" >&2
+    exit 1
+fi
+
 echo "Generated $OUTPUT with ${#KEYS[@]} key mappings."
