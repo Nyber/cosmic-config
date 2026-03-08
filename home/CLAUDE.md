@@ -55,7 +55,7 @@ Entry: `sketchybarrc` → `helpers/init.lua` (sets up SbarLua, runs `make` to au
 - `front_app.lua` — Current app name. Click triggers `swap_menus_and_spaces` to toggle between menus and workspace indicators.
 - `calendar.lua` — Date/time display, click opens Calendar.app.
 - `media.lua` — Album art + scrolling artist/title for Spotify/Music via `nowplaying-cli`. Animated expand/collapse on hover.
-- `widgets/` — battery, volume (with audio device picker via `SwitchAudioSource`), screenshot, VPN toggle, wifi, OrbStack status
+- `widgets/` — battery, volume (with audio device picker via `SwitchAudioSource`), screenshot, VPN toggle, wifi
 
 **Cross-cutting event:** `swap_menus_and_spaces` — toggled by clicking front_app, swaps visibility of menus vs. workspace indicators. Handled in `front_app.lua`, `menus.lua`, and `spaces.lua`.
 
@@ -85,7 +85,7 @@ All in `home/.config/aerospace/`. Consistent pattern: scripts auto-switch worksp
 ### Shell Config
 
 Per-user dotfiles (symlinked from `home/` into `~/`):
-- `home/.zprofile` → `~/.zprofile` — Homebrew shellenv, OrbStack
+- `home/.zprofile` → `~/.zprofile` — Homebrew shellenv
 - `home/.zshrc` → `~/.zshrc` — eza aliases, plugins (zsh-autosuggestions, zsh-syntax-highlighting, fzf), Starship prompt
 - `home/.config/starship.toml` → `~/.config/starship.toml` — Starship config (Tokyo Night palette)
 - `home/.config/eza/theme.yml` → `~/.config/eza/theme.yml` — eza color theme

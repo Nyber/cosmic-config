@@ -201,7 +201,6 @@ return {
 	["ChatGPT"] = ":openai:",
 	["OpenVPN Connect"] = ":openvpn_connect:",
 	["Opera"] = ":opera:",
-	["OrbStack"] = ":orbstack:",
 	["OrcaSlicer"] = ":orcaslicer:",
 	["Orion"] = ":orion:",
 	["Orion RC"] = ":orion:",
