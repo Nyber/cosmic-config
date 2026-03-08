@@ -18,8 +18,10 @@ eval "$(starship init zsh)"
 
 # Plugins (guard — async PTY conflicts with sudo su)
 if [[ -o login || -z "$SUDO_USER" ]]; then
-  source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
-  source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+  [[ -f /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh ]] && \
+    source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+  [[ -f /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]] && \
+    source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 fi
 
 # fzf
