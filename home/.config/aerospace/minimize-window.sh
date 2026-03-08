@@ -19,7 +19,10 @@ echo "$WORKSPACE" > "$MDIR/.minimized-$WINDOW_ID"
 # Wake daemon from slow sleep
 PIDFILE="$MDIR/.minimize-daemon.pid"
 if [ -f "$PIDFILE" ]; then
-  kill -USR1 "$(cat "$PIDFILE")" 2>/dev/null
+  daemon_pid="$(cat "$PIDFILE")"
+  if ps -p "$daemon_pid" -o args= 2>/dev/null | grep -q minimize-daemon; then
+    kill -USR1 "$daemon_pid" 2>/dev/null
+  fi
 fi
 
 # If workspace is now empty, switch away

@@ -122,7 +122,7 @@ done < <(find "$DOTFILES/home" -type f -print0)
 
 # Load LaunchAgents (idempotent — bootout first to handle re-runs)
 for plist in "$HOME"/Library/LaunchAgents/com.aerospace.minimize-daemon.plist; do
-    label="$(defaults read "$plist" Label 2>/dev/null)" || continue
+    label="$(plutil -extract Label raw "$plist" 2>/dev/null)" || continue
     launchctl bootout "gui/$(id -u)/$label" 2>/dev/null || true
     launchctl bootstrap "gui/$(id -u)" "$plist" 2>/dev/null && ok "Loaded $label" || skip "Could not load $label"
 done

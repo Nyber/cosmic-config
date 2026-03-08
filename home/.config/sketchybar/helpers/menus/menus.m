@@ -1,4 +1,5 @@
 #include <Carbon/Carbon.h>
+#import <AppKit/AppKit.h>
 
 void ax_init() {
   const void *keys[] = { kAXTrustedCheckOptionPrompt };
@@ -212,17 +213,9 @@ void ax_select_menu_extra(char* alias) {
   CFRelease(item);
 }
 
-extern void _SLPSGetFrontProcess(ProcessSerialNumber* psn);
-extern void SLSGetConnectionIDForPSN(int cid, ProcessSerialNumber* psn, int* cid_out);
-extern void SLSConnectionGetPID(int cid, pid_t* pid_out);
 AXUIElementRef ax_get_front_app() {
-  ProcessSerialNumber psn;
-  _SLPSGetFrontProcess(&psn);
-  int target_cid;
-  SLSGetConnectionIDForPSN(SLSMainConnectionID(), &psn, &target_cid);
-
-  pid_t pid;
-  SLSConnectionGetPID(target_cid, &pid);
+  pid_t pid = [NSWorkspace sharedWorkspace].frontmostApplication.processIdentifier;
+  if (pid == 0) return NULL;
   return AXUIElementCreateApplication(pid);
 }
 
