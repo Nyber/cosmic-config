@@ -18,10 +18,10 @@ Clone anywhere you like — the install script detects its own location.
 3. Runs **`brew bundle`** — all packages, casks, and fonts from `Brewfile`
 4. Builds **SbarLua** — Lua bindings required by SketchyBar's config
 5. Starts **JankyBorders** and **SketchyBar** services
-6. **Symlinks** everything under `home/` into `~/` (backs up existing files to `~/.dotfiles-backup/`), plus `computer-rebuild.md` → `~/`
-7. Installs **system configs** into `/etc/` with marker-managed blocks (`# BEGIN/END dotfiles`)
+6. **Symlinks** everything under `home/` into `~/` (backs up existing files to `~/.dotfiles-backup/`)
+7. Installs **system configs** (sudoers.d TERMINFO for Ghostty)
 8. Sets **desktop wallpaper**
-9. Applies **macOS settings** (dark mode, Dock, Finder, key repeat, passwordless sudo, display sleep, auto-hide menu bar, login screen, Citrix `.ica` association)
+9. Applies **macOS settings** (dark mode, Dock, Finder, key repeat, passwordless sudo, display sleep, auto-hide menu bar, Citrix `.ica` association)
 
 The script is idempotent — safe to re-run.
 
@@ -31,14 +31,12 @@ The script is idempotent — safe to re-run.
 dotfiles/
 ├── install.sh                          # Single install script
 ├── Brewfile                            # Homebrew manifest
-├── computer-rebuild.md                 # Full setup reference (symlinked to ~/)
 ├── home/                               # Mirrors ~/ (symlinked)
 │   ├── .aerospace.toml                 # Tiling window manager config
 │   ├── .gitconfig
 │   ├── Library/LaunchAgents/
 │   │   └── com.aerospace.minimize-daemon.plist  # Keeps minimize daemon alive
 │   ├── Pictures/
-│   │   ├── profile.jpg                 # Login screen profile picture
 │   │   └── tokyo-night-apple.png       # Desktop wallpaper
 │   └── .config/
 │       ├── aerospace/                  # Helper scripts
@@ -87,11 +85,6 @@ dotfiles/
 │       │       └── menus/              # Native menu bar access (C)
 │       │           ├── makefile
 │       │           └── menus.c
-├── etc/                                # System configs (copied to /etc/)
-│   ├── zshrc.append                    # Appended to /etc/zshrc
-│   ├── zprofile.append                 # Appended to /etc/zprofile
-│   ├── starship.toml                   # Prompt theme
-│   └── eza/theme.yml                   # ls theme
 ```
 
 ## Key bindings
