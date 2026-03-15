@@ -180,7 +180,7 @@ sudo pmset -b displaysleep 0
 ok "AC power: sleep, display sleep, disk sleep, standby, powernap disabled"
 ok "Battery: display sleep disabled"
 
-# fn key: do nothing alone (Karabiner handles fn+key → cmd+option+key for AeroSpace)
+# fn key: do nothing alone (prevents emoji picker from stealing fn keypress)
 defaults write com.apple.HIToolbox AppleFnUsageType -int 0
 ok "fn key emoji picker disabled"
 

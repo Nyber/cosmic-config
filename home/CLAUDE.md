@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-This is a macOS dotfiles repo at `~/.dotfiles/`. It manages the complete desktop environment: AeroSpace tiling WM, SketchyBar status bar, Karabiner keyboard remapping, Ghostty terminal, and shell config — all themed Tokyo Night Storm.
+This is a macOS dotfiles repo at `~/.dotfiles/`. It manages the complete desktop environment: AeroSpace tiling WM, SketchyBar status bar, Ghostty terminal, and shell config — all themed Tokyo Night Storm.
 
 ## Key Commands
 
@@ -13,7 +13,7 @@ This is a macOS dotfiles repo at `~/.dotfiles/`. It manages the complete desktop
 ~/.dotfiles/install.sh
 
 # Reload AeroSpace config after editing .aerospace.toml
-# (or press fn+shift+; then esc)
+# (or press opt+shift+; then esc)
 aerospace reload-config
 
 # Reload SketchyBar after config changes (also auto-rebuilds C helpers)
@@ -21,9 +21,6 @@ sketchybar --reload
 
 # Rebuild SketchyBar C helpers only (after editing C source)
 cd ~/.config/sketchybar/helpers && make
-
-# Regenerate Karabiner config after editing KEYS array
-~/.config/karabiner/generate-config.sh
 
 # Restart services
 brew services restart sketchybar
@@ -49,12 +46,12 @@ Idempotent 9-step installer: Xcode CLI tools → Homebrew → brew bundle → Sb
 Entry: `sketchybarrc` → `helpers/init.lua` (sets up SbarLua, runs `make` to auto-build C helpers) → `init.lua` → loads `bar`, `default`, `items`. C helpers are rebuilt on every `sketchybar --reload`.
 
 **Items** (`items/init.lua` loads all):
-- `apple.lua` — Custom Apple menu popup (replaces native). Opens Apps via Spotlight, App Store, power controls.
-- `spaces.lua` — **Most complex item.** Workspace indicators with badge attention (red icons for apps with notifications). Uses C helper `badges/badges` to read dock badge counts. Real-time detection via `lsappinfo listen` pipe that triggers `badge_check` events on dock badge changes, with 60s routine fallback. Debounces updates with `update_pending`/`recheck_needed` flags — coalesces rapid events while guaranteeing the final state is always queried.
-- `menus.lua` — Native app menu items via C helper. Supports `swap_menus_and_spaces` toggle.
-- `front_app.lua` — Current app name. Click triggers `swap_menus_and_spaces` to toggle between menus and workspace indicators.
+- `apple.lua` — Custom Apple menu popup (replaces native). About This Mac, Applications (Spotlight), App Store, Force Quit, Sleep, Restart, Shut Down, Lock Screen, Log Out.
+- `menus.lua` — Native app menu items via C helper. Defines and handles `swap_menus_and_spaces` event.
+- `spaces.lua` — **Most complex item.** Workspace indicators with badge attention (red icons for apps with notifications). Uses C helper `badges/badges` to read dock badge counts. Real-time detection via `lsappinfo listen` pipe that triggers `badge_check` events on dock badge changes, with 60s routine fallback. Debounces updates with `update_pending`/`recheck_needed` flags — coalesces rapid events while guaranteeing the final state is always queried. Includes `spaces_indicator` toggle icon.
+- `front_app.lua` — Current app name (active display only). Click triggers `swap_menus_and_spaces` to toggle between menus and workspace indicators.
 - `calendar.lua` — Date/time display, click opens Calendar.app.
-- `media.lua` — Album art + scrolling artist/title for Spotify/Music via `nowplaying-cli`. Animated expand/collapse on hover.
+- `media.lua` — Album art + truncated artist/title for Spotify/Music. Animated expand/collapse on hover. `nowplaying-cli` used for popup playback controls.
 - `widgets/` — battery, volume (with audio device picker via `SwitchAudioSource`), screenshot, VPN toggle, wifi
 
 **Cross-cutting event:** `swap_menus_and_spaces` — toggled by clicking front_app, swaps visibility of menus vs. workspace indicators. Handled in `front_app.lua`, `menus.lua`, and `spaces.lua`.
@@ -75,12 +72,8 @@ All in `home/.config/aerospace/`. Consistent pattern: scripts auto-switch worksp
 
 - `workspace-changed.sh` — Triggered by `exec-on-workspace-change`. Updates SketchyBar + hides Zoom overlay on non-Zoom workspaces.
 - `minimize-daemon.sh` — Background daemon (LaunchAgent, `KeepAlive=true`). Tracks minimized windows via `.minimized-<id>` files, restores them to original workspace on unminimize. Adaptive polling (2-15s). Woken by USR1 signal from `minimize-window.sh`.
-- `launch-app.sh` — Opens new window if app running, else `open -a`. Moves window to current workspace.
+- `launch-app.sh` — Opens new window if app running (Cmd+N), else `open -a`. Moves new window to current workspace only when app already has windows.
 - `close-window.sh`, `move-window.sh`, `minimize-window.sh` — Each handles empty-workspace auto-switch.
-
-### Karabiner-Elements
-
-`generate-config.sh` is the single source of truth. Edit the `KEYS` array, run the script — it generates `karabiner.json`. Maps `fn+key` → `cmd+option+key` so AeroSpace uses fn as modifier while ctrl stays free for apps.
 
 ### Shell Config
 

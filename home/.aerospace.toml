@@ -31,71 +31,71 @@ exec-on-workspace-change = ['/bin/bash', '-c', '$HOME/.config/aerospace/workspac
 
 [mode.main.binding]
 
-    # --- Move windows: fn + shift + arrows ---
-    alt-cmd-shift-left  = 'move left'
-    alt-cmd-shift-down  = 'move down'
-    alt-cmd-shift-up    = 'move up'
-    alt-cmd-shift-right = 'move right'
+    # --- Move windows: opt + shift + arrows ---
+    alt-shift-left  = 'move left'
+    alt-shift-down  = 'move down'
+    alt-shift-up    = 'move up'
+    alt-shift-right = 'move right'
 
-    # --- Focus (navigate): fn + arrows ---
-    alt-cmd-left  = 'focus left'
-    alt-cmd-down  = 'focus down'
-    alt-cmd-up    = 'focus up'
-    alt-cmd-right = 'focus right'
+    # --- Focus (navigate): opt + arrows ---
+    alt-left  = 'focus left'
+    alt-down  = 'focus down'
+    alt-up    = 'focus up'
+    alt-right = 'focus right'
 
     # --- Layout ---
-    alt-cmd-slash = 'layout tiles horizontal vertical'
-    alt-cmd-comma = 'layout accordion horizontal vertical'
-    alt-cmd-f     = 'fullscreen'
-    alt-cmd-m     = 'exec-and-forget $HOME/.config/aerospace/minimize-window.sh'
-    alt-cmd-q     = ['close --quit-if-last-window', 'exec-and-forget $HOME/.config/aerospace/close-window.sh']
+    alt-slash = 'layout tiles horizontal vertical'
+    alt-comma = 'layout accordion horizontal vertical'
+    alt-f     = 'fullscreen'
+    alt-m     = 'exec-and-forget $HOME/.config/aerospace/minimize-window.sh'
+    alt-q     = ['close --quit-if-last-window', 'exec-and-forget $HOME/.config/aerospace/close-window.sh']
 
     # --- Resize ---
-    alt-cmd-equal = 'resize smart +50'
-    alt-cmd-minus = 'resize smart -50'
+    alt-equal = 'resize smart +50'
+    alt-minus = 'resize smart -50'
 
-    # --- Workspaces: fn + number ---
-    alt-cmd-1 = 'workspace 1'
-    alt-cmd-2 = 'workspace 2'
-    alt-cmd-3 = 'workspace 3'
-    alt-cmd-4 = 'workspace 4'
-    alt-cmd-5 = 'workspace 5'
-    alt-cmd-6 = 'workspace 6'
-    alt-cmd-7 = 'workspace 7'
-    alt-cmd-8 = 'workspace 8'
-    alt-cmd-9 = 'workspace 9'
+    # --- Workspaces: opt + number ---
+    alt-1 = 'workspace 1'
+    alt-2 = 'workspace 2'
+    alt-3 = 'workspace 3'
+    alt-4 = 'workspace 4'
+    alt-5 = 'workspace 5'
+    alt-6 = 'workspace 6'
+    alt-7 = 'workspace 7'
+    alt-8 = 'workspace 8'
+    alt-9 = 'workspace 9'
 
-    # --- Move window to workspace: fn + shift + number ---
-    alt-cmd-shift-1 = ['move-node-to-workspace 1', 'exec-and-forget $HOME/.config/aerospace/move-window.sh 1']
-    alt-cmd-shift-2 = ['move-node-to-workspace 2', 'exec-and-forget $HOME/.config/aerospace/move-window.sh 2']
-    alt-cmd-shift-3 = ['move-node-to-workspace 3', 'exec-and-forget $HOME/.config/aerospace/move-window.sh 3']
-    alt-cmd-shift-4 = ['move-node-to-workspace 4', 'exec-and-forget $HOME/.config/aerospace/move-window.sh 4']
-    alt-cmd-shift-5 = ['move-node-to-workspace 5', 'exec-and-forget $HOME/.config/aerospace/move-window.sh 5']
-    alt-cmd-shift-6 = ['move-node-to-workspace 6', 'exec-and-forget $HOME/.config/aerospace/move-window.sh 6']
-    alt-cmd-shift-7 = ['move-node-to-workspace 7', 'exec-and-forget $HOME/.config/aerospace/move-window.sh 7']
-    alt-cmd-shift-8 = ['move-node-to-workspace 8', 'exec-and-forget $HOME/.config/aerospace/move-window.sh 8']
-    alt-cmd-shift-9 = ['move-node-to-workspace 9', 'exec-and-forget $HOME/.config/aerospace/move-window.sh 9']
+    # --- Move window to workspace: opt + shift + number ---
+    alt-shift-1 = ['move-node-to-workspace 1', 'exec-and-forget $HOME/.config/aerospace/move-window.sh 1']
+    alt-shift-2 = ['move-node-to-workspace 2', 'exec-and-forget $HOME/.config/aerospace/move-window.sh 2']
+    alt-shift-3 = ['move-node-to-workspace 3', 'exec-and-forget $HOME/.config/aerospace/move-window.sh 3']
+    alt-shift-4 = ['move-node-to-workspace 4', 'exec-and-forget $HOME/.config/aerospace/move-window.sh 4']
+    alt-shift-5 = ['move-node-to-workspace 5', 'exec-and-forget $HOME/.config/aerospace/move-window.sh 5']
+    alt-shift-6 = ['move-node-to-workspace 6', 'exec-and-forget $HOME/.config/aerospace/move-window.sh 6']
+    alt-shift-7 = ['move-node-to-workspace 7', 'exec-and-forget $HOME/.config/aerospace/move-window.sh 7']
+    alt-shift-8 = ['move-node-to-workspace 8', 'exec-and-forget $HOME/.config/aerospace/move-window.sh 8']
+    alt-shift-9 = ['move-node-to-workspace 9', 'exec-and-forget $HOME/.config/aerospace/move-window.sh 9']
 
     # --- Quick switch ---
-    alt-cmd-tab = 'workspace-back-and-forth'
-    alt-cmd-shift-tab = 'move-workspace-to-monitor --wrap-around next'
+    alt-tab = 'workspace-back-and-forth'
+    alt-shift-tab = 'move-workspace-to-monitor --wrap-around next'
 
-    # --- Launch apps: fn + key ---
-    alt-cmd-b = 'exec-and-forget $HOME/.config/aerospace/launch-app.sh Safari'
-    alt-cmd-o = 'exec-and-forget $HOME/.config/aerospace/launch-app.sh Obsidian'
-    alt-cmd-t = 'exec-and-forget $HOME/.config/aerospace/launch-app.sh Ghostty'
-    alt-cmd-s = 'exec-and-forget $HOME/.config/aerospace/launch-app.sh Signal'
-    alt-cmd-z = 'exec-and-forget $HOME/.config/aerospace/launch-app.sh zoom.us'
+    # --- Launch apps: opt + key ---
+    alt-b = 'exec-and-forget $HOME/.config/aerospace/launch-app.sh Safari'
+    alt-o = 'exec-and-forget $HOME/.config/aerospace/launch-app.sh Obsidian'
+    alt-t = 'exec-and-forget $HOME/.config/aerospace/launch-app.sh Ghostty'
+    alt-s = 'exec-and-forget $HOME/.config/aerospace/launch-app.sh Signal'
+    alt-z = 'exec-and-forget $HOME/.config/aerospace/launch-app.sh zoom.us'
 
-    # --- Service mode (fn+shift+;) ---
-    alt-cmd-shift-semicolon = 'mode service'
+    # --- Service mode (opt+shift+;) ---
+    alt-shift-semicolon = 'mode service'
 
 [mode.service.binding]
     esc = ['reload-config', 'mode main']
     r = ['flatten-workspace-tree', 'mode main']
     f = ['layout floating tiling', 'mode main']
     backspace = ['close-all-windows-but-current', 'mode main']
-    alt-cmd-shift-h = ['join-with left', 'mode main']
-    alt-cmd-shift-j = ['join-with down', 'mode main']
-    alt-cmd-shift-k = ['join-with up', 'mode main']
-    alt-cmd-shift-l = ['join-with right', 'mode main']
+    h = ['join-with left', 'mode main']
+    j = ['join-with down', 'mode main']
+    k = ['join-with up', 'mode main']
+    l = ['join-with right', 'mode main']

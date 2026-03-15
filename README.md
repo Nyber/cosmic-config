@@ -1,6 +1,6 @@
 # Dotfiles
 
-macOS setup — AeroSpace, Karabiner-Elements, Ghostty, SketchyBar, JankyBorders, zsh, Starship, eza.
+macOS setup — AeroSpace, Ghostty, SketchyBar, JankyBorders, zsh, Starship, eza.
 
 ## Install
 
@@ -49,9 +49,6 @@ dotfiles/
 │       ├── borders/bordersrc           # JankyBorders config
 │       ├── gh/config.yml               # GitHub CLI config
 │       ├── ghostty/config              # Terminal config
-│       ├── karabiner/                  # Keyboard remapping
-│       │   ├── generate-config.sh      # Generates karabiner.json from key list
-│       │   └── karabiner.json          # Generated — do not edit directly
 │       ├── sketchybar/                 # Status bar (Lua config)
 │       │   ├── sketchybarrc            # Entrypoint
 │       │   ├── init.lua                # Loads bar, defaults, items
@@ -89,28 +86,28 @@ dotfiles/
 
 ## Key bindings
 
-Karabiner-Elements maps `fn` to `cmd+option`, so AeroSpace binds `alt-cmd-*` but you press `fn+*`.
+AeroSpace uses Option/Alt as the modifier key directly.
 
 | Shortcut | Action |
 |----------|--------|
-| `fn + arrows` | Focus window |
-| `fn + shift + arrows` | Move window |
-| `fn + 1-9` | Switch workspace |
-| `fn + shift + 1-9` | Move window to workspace |
-| `fn + tab` | Toggle last workspace |
-| `fn + shift + tab` | Move workspace to next monitor |
-| `fn + f` | Fullscreen |
-| `fn + m` | Minimize (restores to original workspace) |
-| `fn + q` | Quit app |
-| `fn + /` | Toggle tiles layout |
-| `fn + ,` | Toggle accordion layout |
-| `fn + =` / `fn + -` | Resize |
-| `fn + b` | Launch Safari |
-| `fn + o` | Launch Obsidian |
-| `fn + s` | Launch Signal |
-| `fn + t` | Launch Ghostty |
-| `fn + z` | Launch Zoom |
-| `fn + shift + ;` | Enter service mode |
+| `opt + arrows` | Focus window |
+| `opt + shift + arrows` | Move window |
+| `opt + 1-9` | Switch workspace |
+| `opt + shift + 1-9` | Move window to workspace |
+| `opt + tab` | Toggle last workspace |
+| `opt + shift + tab` | Move workspace to next monitor |
+| `opt + f` | Fullscreen |
+| `opt + m` | Minimize (restores to original workspace) |
+| `opt + q` | Quit app |
+| `opt + /` | Toggle tiles layout |
+| `opt + ,` | Toggle accordion layout |
+| `opt + =` / `opt + -` | Resize |
+| `opt + b` | Launch Safari |
+| `opt + o` | Launch Obsidian |
+| `opt + s` | Launch Signal |
+| `opt + t` | Launch Ghostty |
+| `opt + z` | Launch Zoom |
+| `opt + shift + ;` | Enter service mode |
 
 **Service mode** (press key, then auto-returns to main):
 
@@ -120,18 +117,9 @@ Karabiner-Elements maps `fn` to `cmd+option`, so AeroSpace binds `alt-cmd-*` but
 | `r` | Flatten workspace tree |
 | `f` | Toggle floating |
 | `backspace` | Close all windows but current |
-| `fn + shift + h/j/k/l` | Join with direction |
+| `h/j/k/l` | Join with direction |
 
-After editing `.aerospace.toml`, reload with `fn + shift + ;` then `esc`.
-
-## Karabiner config
-
-`karabiner.json` is generated — don't edit it by hand. To add or remove key mappings:
-
-1. Edit the `KEYS` array in `generate-config.sh`
-2. Run `~/.config/karabiner/generate-config.sh`
-
-Karabiner auto-reloads on file change.
+After editing `.aerospace.toml`, reload with `opt + shift + ;` then `esc`.
 
 ## Theme
 

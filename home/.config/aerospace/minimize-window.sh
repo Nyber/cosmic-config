@@ -1,5 +1,5 @@
 #!/bin/sh
-# Minimize the focused window via fn+m. Writes the .minimized tracking file
+# Minimize the focused window via opt+m. Writes the .minimized tracking file
 # directly (guaranteed workspace capture) and wakes the daemon from slow sleep.
 
 MDIR="$HOME/.config/aerospace"
