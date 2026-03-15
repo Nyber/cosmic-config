@@ -34,6 +34,9 @@ dotfiles/
 ├── home/                               # Mirrors ~/ (symlinked)
 │   ├── .aerospace.toml                 # Tiling window manager config
 │   ├── .gitconfig
+│   ├── .zprofile                       # Homebrew shellenv
+│   ├── .zshrc                          # Aliases, plugins, Starship prompt
+│   ├── CLAUDE.md                       # Claude Code project instructions
 │   ├── Library/LaunchAgents/
 │   │   └── com.aerospace.minimize-daemon.plist  # Keeps minimize daemon alive
 │   ├── Pictures/
@@ -42,20 +45,22 @@ dotfiles/
 │       ├── aerospace/                  # Helper scripts
 │       │   ├── close-window.sh         # Auto-switch on empty workspace
 │       │   ├── launch-app.sh           # Generic app launcher (new window)
-│       │   ├── minimize-daemon.sh       # Restore minimized windows to original workspace
+│       │   ├── minimize-daemon.sh      # Restore minimized windows to original workspace
 │       │   ├── minimize-window.sh      # Minimize + empty workspace auto-switch
 │       │   ├── move-window.sh          # Move window + follow if empty
 │       │   └── workspace-changed.sh    # SketchyBar update + hide Zoom overlay
 │       ├── borders/bordersrc           # JankyBorders config
+│       ├── eza/theme.yml               # eza color theme
 │       ├── gh/config.yml               # GitHub CLI config
 │       ├── ghostty/config              # Terminal config
+│       ├── starship.toml               # Starship prompt config
 │       ├── sketchybar/                 # Status bar (Lua config)
 │       │   ├── sketchybarrc            # Entrypoint
 │       │   ├── init.lua                # Loads bar, defaults, items
 │       │   ├── bar.lua                 # Bar appearance
 │       │   ├── colors.lua              # Tokyo Night palette
 │       │   ├── default.lua             # Default item styling
-│       │   ├── icons.lua               # SF Symbols + NerdFont icons
+│       │   ├── icons.lua               # NerdFont icons
 │       │   ├── settings.lua            # Font, padding config
 │       │   ├── items/                  # Bar items
 │       │   │   ├── init.lua            # Loads all item modules
@@ -70,18 +75,24 @@ dotfiles/
 │       │   │       ├── battery.lua
 │       │   │       ├── volume.lua      # Volume + audio device picker
 │       │   │       ├── screenshot.lua
-│       │   │       └── vpn.lua         # F5 BIG-IP toggle
-│       │   └── helpers/                # C helpers + SbarLua loader
+│       │   │       ├── vpn.lua         # F5 BIG-IP toggle
+│       │   │       └── wifi.lua        # WiFi status
+│       │   └── helpers/                # C/ObjC helpers + SbarLua loader
 │       │       ├── init.lua            # Loads SbarLua + builds C helpers
-│       │       ├── makefile            # Builds C helpers
-│       │       ├── .gitignore          # Ignores compiled binaries
+│       │       ├── makefile            # Builds all helper subdirectories
 │       │       ├── app_icons.lua       # App → icon mapping
 │       │       ├── badge_data.lua      # Badge attention data for workspaces
 │       │       ├── json.lua            # JSON parser
 │       │       ├── vpn_toggle.sh       # VPN connect/disconnect
-│       │       └── menus/              # Native menu bar access (C)
+│       │       ├── badges/             # Dock badge count reader (C)
+│       │       │   ├── makefile
+│       │       │   └── badges.c
+│       │       ├── menus/              # Native menu bar access (ObjC)
+│       │       │   ├── makefile
+│       │       │   └── menus.m
+│       │       └── volume/             # Volume control helper (C)
 │       │           ├── makefile
-│       │           └── menus.c
+│       │           └── volume.c
 ```
 
 ## Key bindings
