@@ -241,6 +241,7 @@ local update_pending = false
 local recheck_needed = false
 local last_window_update_time = 0
 local space_visible = {}
+local spaces_visible = true
 for i = 1, NUM_SPACES do space_visible[i] = true end
 local function update_space_icons(env)
   if update_pending then
@@ -348,13 +349,22 @@ local spaces_indicator = sbar.add("item", {
   },
 })
 
-local spaces_visible = true
-
-spaces_indicator:subscribe("swap_menus_and_spaces", function(env)
+space_window_observer:subscribe("swap_menus_and_spaces", function(env)
   spaces_visible = not spaces_visible
   spaces_indicator:set({
     icon = spaces_visible and icons.switch.on or icons.switch.off
   })
+  if not spaces_visible then
+    for i = 1, NUM_SPACES do
+      space_visible[i] = false
+      spaces[i]:set({ drawing = false })
+      space_badges[i]:set({ drawing = false })
+      space_brackets[i]:set({ drawing = false })
+      space_paddings[i]:set({ drawing = false })
+    end
+  else
+    update_space_icons()
+  end
 end)
 
 spaces_indicator:subscribe("mouse.clicked", function(env)
