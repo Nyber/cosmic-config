@@ -40,6 +40,12 @@ popup_item("󰌢", "About This Mac",   "open 'x-apple.systempreferences:com.appl
 popup_item("󰀻", "Applications",     "osascript -e 'tell application \"System Events\" to key code 49 using command down' && sleep 0.3 && osascript -e 'tell application \"System Events\" to key code 18 using command down'")
 popup_item("󰏌", "App Store",        "open -a 'App Store'")
 popup_item("󰖲", "Force Quit…",      "osascript -e 'tell application \"System Events\" to key code 12 using {command down, option down}'")
+sbar.add("item", {
+  position = "popup." .. apple.name,
+  icon = { string = "󰍜", font = { family = settings.font.text, size = 14.0 }, padding_left = 8, padding_right = 4 },
+  label = { string = "Show Menu Bar", padding_right = 8 },
+  click_script = "/opt/homebrew/bin/sketchybar --set " .. apple.name .. " popup.drawing=off ; /opt/homebrew/bin/sketchybar --bar hidden=true ; sleep 10 ; /opt/homebrew/bin/sketchybar --bar hidden=false"
+})
 popup_item("󰒲", "Sleep",            "pmset sleepnow")
 popup_item("󰜉", "Restart…",         "osascript -e 'tell application \"System Events\" to restart'")
 popup_item("󰐥", "Shut Down…",       "osascript -e 'tell application \"System Events\" to shut down'")
@@ -48,6 +54,10 @@ popup_item("󰍃", "Log Out…",         "osascript -e 'tell application \"Syste
 
 apple:subscribe("mouse.clicked", function()
   apple:set({ popup = { drawing = "toggle" } })
+end)
+
+apple:subscribe({"front_app_switched", "aerospace_workspace_change", "space_change"}, function()
+  apple:set({ popup = { drawing = false } })
 end)
 
 -- Double border for apple using a single item bracket

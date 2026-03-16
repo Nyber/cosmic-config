@@ -241,7 +241,7 @@ local update_pending = false
 local recheck_needed = false
 local last_window_update_time = 0
 local space_visible = {}
-for i = 1, NUM_SPACES do space_visible[i] = false end
+for i = 1, NUM_SPACES do space_visible[i] = true end
 local function update_space_icons(env)
   if update_pending then
     recheck_needed = true
