@@ -240,6 +240,8 @@ local space_window_observer = sbar.add("item", {
 local update_pending = false
 local recheck_needed = false
 local last_window_update_time = 0
+local space_visible = {}
+for i = 1, NUM_SPACES do space_visible[i] = false end
 local function update_space_icons(env)
   if update_pending then
     recheck_needed = true
@@ -263,11 +265,14 @@ local function update_space_icons(env)
       local is_focused = focused_ws == tostring(i)
       local visible = has_app or is_focused
 
-      sbar.animate("tanh", 10, function()
-        spaces[i]:set({ drawing = visible })
-      end)
-      space_brackets[i]:set({ drawing = visible })
-      space_paddings[i]:set({ drawing = visible })
+      if visible ~= space_visible[i] then
+        space_visible[i] = visible
+        sbar.animate("tanh", 10, function()
+          spaces[i]:set({ drawing = visible })
+          space_brackets[i]:set({ drawing = visible })
+          space_paddings[i]:set({ drawing = visible })
+        end)
+      end
     end
 
     check_badges(ws_apps)
@@ -282,6 +287,9 @@ end
 space_window_observer:subscribe("aerospace_workspace_change", update_space_icons)
 space_window_observer:subscribe("front_app_switched", update_space_icons)
 space_window_observer:subscribe("space_windows_change", update_space_icons)
+space_window_observer:subscribe("display_change", update_space_icons)
+space_window_observer:subscribe("space_change", update_space_icons)
+space_window_observer:subscribe("system_woke", update_space_icons)
 
 local last_badge_check_time = 0
 space_window_observer:subscribe("badge_check", function()
@@ -340,10 +348,12 @@ local spaces_indicator = sbar.add("item", {
   },
 })
 
+local spaces_visible = true
+
 spaces_indicator:subscribe("swap_menus_and_spaces", function(env)
-  local currently_on = spaces_indicator:query().icon.value == icons.switch.on
+  spaces_visible = not spaces_visible
   spaces_indicator:set({
-    icon = currently_on and icons.switch.off or icons.switch.on
+    icon = spaces_visible and icons.switch.on or icons.switch.off
   })
 end)
 

@@ -57,9 +57,11 @@ end
 
 menu_watcher:subscribe("front_app_switched", update_menus)
 
+local menus_visible = false
+
 space_menu_swap:subscribe("swap_menus_and_spaces", function(env)
-  local drawing = menu_items[1]:query().geometry.drawing == "on"
-  if drawing then
+  menus_visible = not menus_visible
+  if not menus_visible then
     menu_watcher:set( { updates = false })
     sbar.set("/menu\\..*/", { drawing = false })
     sbar.set("front_app", { drawing = true })

@@ -6,7 +6,10 @@ alias ls='eza --icons --group --links --blocksize'
 alias ll='eza -la --icons --group --links'
 
 # Obsidian terminal lacks Nerd Font — fall back to plain ls
-[[ "$__CFBundleIdentifier" == "md.obsidian" ]] && alias ll='command ls -al'
+if [[ "$__CFBundleIdentifier" == "md.obsidian" ]]; then
+  alias ls='command ls'
+  alias ll='command ls -al'
+fi
 
 # Explicit key bindings (fallback if terminfo is missing)
 bindkey '^?' backward-delete-char

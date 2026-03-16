@@ -48,7 +48,7 @@ Entry: `sketchybarrc` → `helpers/init.lua` (sets up SbarLua, runs `make` to au
 **Items** (`items/init.lua` loads all):
 - `apple.lua` — Custom Apple menu popup (replaces native). About This Mac, Applications (Spotlight), App Store, Force Quit, Sleep, Restart, Shut Down, Lock Screen, Log Out.
 - `menus.lua` — Native app menu items via C helper. Defines and handles `swap_menus_and_spaces` event.
-- `spaces.lua` — **Most complex item.** Workspace indicators with badge attention (red icons for apps with notifications). Uses C helper `badges/badges` to read dock badge counts. Real-time detection via `lsappinfo listen` pipe that triggers `badge_check` events on dock badge changes, with 60s routine fallback. Debounces updates with `update_pending`/`recheck_needed` flags — coalesces rapid events while guaranteeing the final state is always queried. Includes `spaces_indicator` toggle icon.
+- `spaces.lua` — **Most complex item.** Workspace indicators with badge attention (red icons for apps with notifications). Uses C helper `badges/badges` to read dock badge counts. Real-time detection via `lsappinfo listen` pipe that triggers `badge_check` events on dock badge changes, with 60s routine fallback. Debounces updates with `update_pending`/`recheck_needed` flags — coalesces rapid events while guaranteeing the final state is always queried. Subscribes to `aerospace_workspace_change`, `front_app_switched`, `space_windows_change`, `display_change`, `space_change`, and `system_woke`. Includes `spaces_indicator` toggle icon.
 - `front_app.lua` — Current app name (active display only). Click triggers `swap_menus_and_spaces` to toggle between menus and workspace indicators.
 - `calendar.lua` — Date/time display, click opens Calendar.app.
 - `media.lua` — Album art + truncated artist/title for Spotify/Music. Animated expand/collapse on hover. `nowplaying-cli` used for popup playback controls.
@@ -71,6 +71,11 @@ Entry: `sketchybarrc` → `helpers/init.lua` (sets up SbarLua, runs `make` to au
 All in `home/.config/aerospace/`. Consistent pattern: scripts auto-switch workspaces when the current one becomes empty, and refresh SketchyBar.
 
 - `workspace-changed.sh` — Triggered by `exec-on-workspace-change`. Updates SketchyBar + hides Zoom overlay on non-Zoom workspaces.
+
+**AeroSpace callbacks** (in `.aerospace.toml`):
+- `exec-on-workspace-change` → runs `workspace-changed.sh`
+- `on-focused-monitor-changed` → moves mouse + triggers SketchyBar refresh
+- `[[on-window-detected]]` → triggers `aerospace_workspace_change` for any new window (Login Items, `open` commands, background windows)
 - `minimize-daemon.sh` — Background daemon (LaunchAgent, `KeepAlive=true`). Tracks minimized windows via `.minimized-<id>` files, restores them to original workspace on unminimize. Adaptive polling (2-15s). Woken by USR1 signal from `minimize-window.sh`.
 - `launch-app.sh` — Opens new window if app running (Cmd+N), else `open -a`. Moves new window to current workspace only when app already has windows.
 - `close-window.sh`, `move-window.sh`, `minimize-window.sh` — Each handles empty-workspace auto-switch.
