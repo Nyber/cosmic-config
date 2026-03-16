@@ -39,8 +39,11 @@ while true; do
       if [ "$ws" != "$orig_ws" ]; then
         /opt/homebrew/bin/aerospace move-node-to-workspace "$orig_ws" --window-id "$wid"
         /opt/homebrew/bin/aerospace workspace "$orig_ws"
-        /opt/homebrew/bin/sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE="$(/opt/homebrew/bin/aerospace list-workspaces --focused)"
       fi
+      # Re-tile: macOS restores minimized windows as floating
+      /opt/homebrew/bin/aerospace layout tiling --window-id "$wid" 2>/dev/null
+      /opt/homebrew/bin/aerospace flatten-workspace-tree 2>/dev/null
+      /opt/homebrew/bin/sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE="$(/opt/homebrew/bin/aerospace list-workspaces --focused)"
     fi
   done < "$CURR_FILE"
 

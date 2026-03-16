@@ -184,9 +184,14 @@ ok "Battery: display sleep disabled"
 defaults write com.apple.HIToolbox AppleFnUsageType -int 0
 ok "fn key emoji picker disabled"
 
-# Auto-hide macOS menu bar (SketchyBar replaces it with topmost=on)
-defaults write com.apple.WindowManager AutoHideMenuBar -int 3
-ok "macOS menu bar auto-hidden (SketchyBar replaces it)"
+# Never auto-hide macOS menu bar — SketchyBar covers it with topmost=on.
+# Auto-hide (3) causes SketchyBar to vanish on macOS 26 when no windows are open.
+defaults write com.apple.WindowManager AutoHideMenuBar -int 0
+ok "macOS menu bar set to never auto-hide (SketchyBar covers it)"
+
+# Disable "Click wallpaper to reveal desktop" — hides SketchyBar
+defaults write com.apple.WindowManager EnableStandardClickToShowDesktop -bool false
+ok "Click wallpaper to show desktop disabled"
 
 # Don't confirm unsaved changes on close
 defaults write NSGlobalDomain NSCloseAlwaysConfirmsChanges -bool false
