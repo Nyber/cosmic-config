@@ -60,6 +60,10 @@ apple:subscribe({"front_app_switched", "aerospace_workspace_change", "space_chan
   apple:set({ popup = { drawing = false } })
 end)
 
+apple:subscribe("mouse.exited.global", function()
+  apple:set({ popup = { drawing = false } })
+end)
+
 -- Double border for apple using a single item bracket
 sbar.add("bracket", { apple.name }, {
   background = {

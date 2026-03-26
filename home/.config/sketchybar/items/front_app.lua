@@ -14,6 +14,7 @@ local front_app = sbar.add("item", "front_app", {
 })
 
 front_app:subscribe("front_app_switched", function(env)
+  if not env.INFO then return end
   front_app:set({ label = { string = env.INFO } })
 end)
 
