@@ -237,20 +237,24 @@ local space_window_observer = sbar.add("item", {
   updates = true,
 })
 
-local update_pending = false
+local update_pending_since = 0
 local recheck_needed = false
 local last_window_update_time = 0
 local space_visible = {}
 local spaces_visible = true
 for i = 1, NUM_SPACES do space_visible[i] = true end
-local function update_space_icons(env)
-  if update_pending then
-    recheck_needed = true
-    return
+local function update_space_icons()
+  local now = os.time()
+  if update_pending_since > 0 then
+    if (now - update_pending_since) < 5 then
+      recheck_needed = true
+      return
+    end
+    -- Pending exec timed out (callback lost) — allow fresh query
   end
-  update_pending = true
+  update_pending_since = now
   sbar.exec("/opt/homebrew/bin/aerospace list-windows --all --format '%{workspace}|%{app-name}'", function(result)
-    update_pending = false
+    update_pending_since = 0
     local focused_ws = tostring(focused_workspace)
 
     local ws_apps = parse_window_list(result)
