@@ -1,4 +1,6 @@
-return {
+local icon_set = require("helpers.icon_set")
+
+local icons = {
 	["Live"] = ":ableton:",
 	["Adobe Bridge"] = ":adobe_bridge:",
 	["Affinity Designer"] = ":affinity_designer:",
@@ -342,5 +344,22 @@ return {
 	["Tips"] = ":tips:",
 	["VoiceMemos"] = ":voice_memos:",
 	["Weather"] = ":weather:",
+	["Littlebird"] = ":twitter:",
 	["OneDrive"] = ":default:",
 }
+
+setmetatable(icons, {
+	__index = function(self, key)
+		local name = key:lower():gsub("[%s%-%.]+", "_")
+		local icon
+		if icon_set[name] then
+			icon = ":" .. name .. ":"
+		else
+			icon = ":default:"
+		end
+		rawset(self, key, icon)
+		return icon
+	end,
+})
+
+return icons
