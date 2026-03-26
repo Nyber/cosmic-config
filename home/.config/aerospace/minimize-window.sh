@@ -1,6 +1,7 @@
 #!/bin/sh
 # Minimize the focused window via opt+m. Writes the .minimized tracking file
-# directly (guaranteed workspace capture) and wakes the daemon from slow sleep.
+# directly (guaranteed workspace capture). The daemon detects the minimize
+# on its next poll and switches to fast polling while .minimized files exist.
 
 MDIR="$HOME/.config/aerospace"
 WINDOW_ID=$(/opt/homebrew/bin/aerospace list-windows --focused --format '%{window-id}')
@@ -16,19 +17,6 @@ WORKSPACE=$(/opt/homebrew/bin/aerospace list-workspaces --focused)
 # Write tracking file AFTER minimize to avoid false-restore race condition
 echo "$WORKSPACE" > "$MDIR/.minimized-$WINDOW_ID"
 
-# Wake daemon from slow sleep
-PIDFILE="$MDIR/.minimize-daemon.pid"
-if [ -f "$PIDFILE" ]; then
-  daemon_pid="$(cat "$PIDFILE")"
-  if ps -p "$daemon_pid" -o args= 2>/dev/null | grep -q minimize-daemon; then
-    kill -USR1 "$daemon_pid" 2>/dev/null
-  fi
-fi
-
-# If workspace is now empty, switch away
+# Compact workspaces after minimize
 sleep 0.1
-if [ -z "$(/opt/homebrew/bin/aerospace list-windows --workspace focused)" ]; then
-  /opt/homebrew/bin/aerospace workspace-back-and-forth
-fi
-
-/opt/homebrew/bin/sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE="$(/opt/homebrew/bin/aerospace list-workspaces --focused)"
+$HOME/.config/aerospace/compact-workspaces.sh

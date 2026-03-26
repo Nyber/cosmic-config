@@ -68,17 +68,18 @@ Entry: `sketchybarrc` → `helpers/init.lua` (sets up SbarLua, runs `make` to au
 
 ### AeroSpace Helper Scripts
 
-All in `home/.config/aerospace/`. Consistent pattern: scripts auto-switch workspaces when the current one becomes empty, and refresh SketchyBar.
+All in `home/.config/aerospace/`. Scripts auto-compact workspaces (fill gaps) and refresh SketchyBar.
 
+- `compact-workspaces.sh` — Core compaction logic. Detects gaps in workspace numbering (e.g., 1,2,4,5 → 1,2,3,4), moves windows down to fill gaps, updates `.minimized-*` tracking files for renumbered occupied workspaces, focuses the correct workspace, and triggers SketchyBar. Uses `mkdir`-based non-blocking lock to prevent concurrent runs.
 - `workspace-changed.sh` — Triggered by `exec-on-workspace-change`. Updates SketchyBar + hides Zoom overlay on non-Zoom workspaces.
+- `close-window.sh`, `move-window.sh`, `minimize-window.sh` — Each calls `compact-workspaces.sh` after its action.
 
 **AeroSpace callbacks** (in `.aerospace.toml`):
 - `exec-on-workspace-change` → runs `workspace-changed.sh`
 - `on-focused-monitor-changed` → moves mouse + triggers SketchyBar refresh
 - `[[on-window-detected]]` → triggers `aerospace_workspace_change` for any new window (Login Items, `open` commands, background windows)
-- `minimize-daemon.sh` — Background daemon (LaunchAgent, `KeepAlive=true`). Tracks minimized windows via `.minimized-<id>` files, restores them to original workspace on unminimize. Adaptive polling (2-15s). Woken by USR1 signal from `minimize-window.sh`.
+- `minimize-daemon.sh` — Background daemon (LaunchAgent, `KeepAlive=true`). Tracks minimized windows via `.minimized-<id>` files in `~/.config/aerospace/`, restores them to original workspace on unminimize (or to end if workspace was compacted with different content), then compacts. Also triggers compact on any window list change (catches non-keybinding closes, app quits). Uses file birth time (`stat -f %B`) to avoid false restores from async minimize delay. Adaptive polling (2-15s). Temp files stored in `~/.config/aerospace/` (not `/tmp`) to survive macOS cleanup.
 - `launch-app.sh` — Opens new window if app running (Cmd+N), else `open -a`. Moves new window to current workspace only when app already has windows.
-- `close-window.sh`, `move-window.sh`, `minimize-window.sh` — Each handles empty-workspace auto-switch.
 
 ### Shell Config
 
@@ -92,6 +93,6 @@ Per-user dotfiles (symlinked from `home/` into `~/`):
 
 - **LaunchAgent scripts must use full paths** (`/opt/homebrew/bin/sketchybar`, `/opt/homebrew/bin/aerospace`) — launchd PATH is minimal
 - **Event-driven SketchyBar updates** — AeroSpace scripts trigger custom events rather than polling
-- **Signal-based daemon wakeup** — USR1 signal wakes minimize-daemon from slow sleep immediately
+- **File birth time for restore detection** — minimize-daemon uses `stat -f %B` (macOS APFS birth time) to distinguish "just minimized" (< 3s) from "restored from Dock" (>= 3s), avoiding false restores from async minimize delay
 - **Tokyo Night colors** are centralized in `sketchybar/colors.lua` — use those constants, don't hardcode hex values in items
 - **NerdFont glyphs are invisible to text tools** — files like `icons.lua` contain 3-byte UTF-8 NerdFont glyphs (U+F000–U+FFFF) that display identically to empty strings in Read/Edit. After editing these files, always verify with `xxd` that glyphs survived (look for `22 ef xx xx 22` not `2222`). Use binary-safe methods (python `open('f','rb')`) to insert glyphs, not the Edit tool.

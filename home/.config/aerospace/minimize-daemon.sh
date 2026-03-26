@@ -4,56 +4,93 @@
 # Managed by LaunchAgent (com.aerospace.minimize-daemon).
 #
 # Adaptive polling: 2s when .minimized-* files exist, 15s when idle.
-# minimize-window.sh sends USR1 to wake from slow sleep immediately.
 
-PREV_FILE=$(mktemp)
-CURR_FILE=$(mktemp)
 MDIR="$HOME/.config/aerospace"
+PREV_FILE="$MDIR/.daemon-prev"
+CURR_FILE="$MDIR/.daemon-curr"
 PIDFILE="$MDIR/.minimize-daemon.pid"
-FAST_POLLS=0
+AEROSPACE=/opt/homebrew/bin/aerospace
 
 echo $$ > "$PIDFILE"
 trap 'rm -f "$PREV_FILE" "$PREV_FILE.new" "$CURR_FILE" "$PIDFILE"' EXIT
-trap 'FAST_POLLS=3' USR1
 
 : > "$PREV_FILE"
 CLEANUP=0
 
 while true; do
-  /opt/homebrew/bin/aerospace list-windows --all --format '%{window-id} %{workspace}' > "$CURR_FILE"
+  $AEROSPACE list-windows --all --format '%{window-id} %{workspace}' > "$CURR_FILE"
 
-  # Single awk pass: find windows in prev but not curr (just minimized).
-  # PREV is already NULL-filtered, so workspaces are always valid.
+  # Detect windows that just disappeared (in prev but not curr = just minimized).
+  # Only write .minimized if it doesn't already exist — minimize-window.sh writes
+  # the authoritative value (daemon PREV can be stale if window moved recently).
   awk 'NR==FNR {curr[$1]; next} !($1 in curr)' "$CURR_FILE" "$PREV_FILE" |
   while IFS=' ' read -r wid ws; do
-    echo "$ws" > "$MDIR/.minimized-$wid"
+    mfile="$MDIR/.minimized-$wid"
+    if [ ! -f "$mfile" ]; then
+      echo "$ws" > "$mfile"
+    fi
   done
 
-  # Windows in curr that have a .minimized file → just restored
-  while IFS=' ' read -r wid ws; do
-    [ -z "$wid" ] && continue
-    mfile="$MDIR/.minimized-$wid"
-    if [ -f "$mfile" ]; then
-      orig_ws=$(cat "$mfile")
-      rm -f "$mfile"
-      if [ "$ws" != "$orig_ws" ]; then
-        /opt/homebrew/bin/aerospace move-node-to-workspace "$orig_ws" --window-id "$wid"
-        /opt/homebrew/bin/aerospace workspace "$orig_ws"
-      fi
-      # Re-tile: macOS restores minimized windows as floating
-      /opt/homebrew/bin/aerospace layout tiling --window-id "$wid" 2>/dev/null
-      /opt/homebrew/bin/aerospace flatten-workspace-tree 2>/dev/null
-      /opt/homebrew/bin/sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE="$(/opt/homebrew/bin/aerospace list-workspaces --focused)"
-    fi
-  done < "$CURR_FILE"
+  # Restore: scan all .minimized files for windows that are visible in CURR.
+  # Use file birth time to avoid false restores — if the file is < 3s old,
+  # the window may still be disappearing from list-windows (async minimize).
+  # This handles minimize+restore within one poll cycle (the awk "appeared"
+  # approach missed this since the window stayed in both PREV and CURR).
+  now=$(date +%s)
+  for mfile in "$MDIR"/.minimized-*; do
+    [ -f "$mfile" ] || continue
+    wid="${mfile##*.minimized-}"
 
-  # Every ~60s, purge .minimized files for windows that no longer exist
+    # Is window currently visible?
+    ws=$(awk -v w="$wid" '$1 == w {print $2}' "$CURR_FILE")
+    if [ -z "$ws" ]; then
+      continue
+    fi
+
+    # Is file old enough to rule out async minimize delay?
+    file_birth=$(stat -f %B "$mfile" 2>/dev/null || echo "$now")
+    age=$((now - file_birth))
+    if [ "$age" -lt 3 ]; then
+      continue
+    fi
+
+    mdata=$(cat "$mfile")
+    orig_ws=$(echo "$mdata" | awk '{print $1}')
+    compacted=$(echo "$mdata" | awk '{print $2}')
+    rm -f "$mfile"
+
+    # Determine target workspace.
+    # If compact marked this as "compacted" (original ws was emptied and refilled
+    # by different content), restore to the end instead of mixing with wrong content.
+    target_ws="$orig_ws"
+    if [ "$compacted" = "compacted" ]; then
+      max_ws=$($AEROSPACE list-windows --all --format '%{workspace}' | sort -n | tail -1)
+      target_ws=$((max_ws + 1))
+    fi
+
+    if [ "$ws" != "$target_ws" ]; then
+      $AEROSPACE move-node-to-workspace "$target_ws" --window-id "$wid"
+      $AEROSPACE workspace "$target_ws"
+    fi
+    # Re-tile: macOS restores minimized windows as floating
+    $AEROSPACE layout tiling --window-id "$wid" 2>/dev/null
+    $AEROSPACE flatten-workspace-tree 2>/dev/null
+    # Compact in case restore created gaps
+    "$MDIR/compact-workspaces.sh"
+  done
+
+  # Every ~60s, purge .minimized files for windows that no longer exist.
+  # Only purge files older than 120s to avoid race with async restore detection.
   CLEANUP=$((CLEANUP + 1))
   if [ "$CLEANUP" -ge 30 ]; then
     CLEANUP=0
+    now_cleanup=$(date +%s)
     for mfile in "$MDIR"/.minimized-*; do
       [ -f "$mfile" ] || continue
       wid="${mfile##*.minimized-}"
+      file_birth=$(stat -f %B "$mfile" 2>/dev/null || echo "$now_cleanup")
+      age=$((now_cleanup - file_birth))
+      [ "$age" -lt 120 ] && continue
       # Window gone from both lists = closed while minimized — safe to delete
       if ! grep -q "^$wid " "$CURR_FILE" && ! grep -q "^$wid " "$PREV_FILE"; then
         rm -f "$mfile"
@@ -65,17 +102,15 @@ while true; do
   grep -v NULL "$CURR_FILE" > "$PREV_FILE.new"
   if ! cmp -s "$PREV_FILE" "$PREV_FILE.new"; then
     /opt/homebrew/bin/sketchybar --trigger badge_check
+    # Compact on any window list change (catches non-keybinding closes, app quits, etc.)
+    "$MDIR/compact-workspaces.sh"
   fi
   mv "$PREV_FILE.new" "$PREV_FILE"
 
-  # Adaptive sleep: fast after USR1 signal or when tracking minimized windows
-  if [ "$FAST_POLLS" -gt 0 ]; then
-    FAST_POLLS=$((FAST_POLLS - 1))
-    sleep 2
-  elif ls "$MDIR"/.minimized-* >/dev/null 2>&1; then
+  # Adaptive sleep: 2s when tracking minimized windows, 15s when idle
+  if ls "$MDIR"/.minimized-* >/dev/null 2>&1; then
     sleep 2
   else
-    sleep 15 &
-    wait $!
+    sleep 15
   fi
 done
