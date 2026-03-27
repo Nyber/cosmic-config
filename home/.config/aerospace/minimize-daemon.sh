@@ -23,11 +23,23 @@ while true; do
   # Detect windows that just disappeared (in prev but not curr = just minimized).
   # Only write .minimized if it doesn't already exist — minimize-window.sh writes
   # the authoritative value (daemon PREV can be stale if window moved recently).
+  JUST_MINIMIZED=0
   awk 'NR==FNR {curr[$1]; next} !($1 in curr)' "$CURR_FILE" "$PREV_FILE" |
   while IFS=' ' read -r wid ws; do
     mfile="$MDIR/.minimized-$wid"
     if [ ! -f "$mfile" ]; then
       echo "$ws" > "$mfile"
+    fi
+  done
+  # Check if any .minimized files were just created (< 3s old) — means windows
+  # were minimized this cycle, not closed/quit.
+  now_min=$(date +%s)
+  for mfile in "$MDIR"/.minimized-*; do
+    [ -f "$mfile" ] || continue
+    fb=$(stat -f %B "$mfile" 2>/dev/null || echo 0)
+    if [ $((now_min - fb)) -lt 3 ]; then
+      JUST_MINIMIZED=1
+      break
     fi
   done
 
@@ -70,11 +82,17 @@ while true; do
 
     if [ "$ws" != "$target_ws" ]; then
       $AEROSPACE move-node-to-workspace "$target_ws" --window-id "$wid"
+      touch /tmp/.aero-intent
       $AEROSPACE workspace "$target_ws"
     fi
     # Re-tile: macOS restores minimized windows as floating
-    $AEROSPACE layout tiling --window-id "$wid" 2>/dev/null
-    $AEROSPACE flatten-workspace-tree 2>/dev/null
+    # Skip for apps that should stay floating (e.g. Zoom)
+    app_name=$($AEROSPACE list-windows --all --format '%{window-id}|%{app-bundle-id}' | awk -F'|' -v w="$wid" '$1 == w {print $2}')
+    case "$app_name" in
+      us.zoom.xos) ;;
+      *) $AEROSPACE layout tiling --window-id "$wid" 2>/dev/null
+         $AEROSPACE flatten-workspace-tree 2>/dev/null ;;
+    esac
     # Compact in case restore created gaps
     "$MDIR/compact-workspaces.sh"
   done
@@ -102,8 +120,13 @@ while true; do
   grep -v NULL "$CURR_FILE" > "$PREV_FILE.new"
   if ! cmp -s "$PREV_FILE" "$PREV_FILE.new"; then
     /opt/homebrew/bin/sketchybar --trigger badge_check
-    # Compact on any window list change (catches non-keybinding closes, app quits, etc.)
-    "$MDIR/compact-workspaces.sh"
+    # Skip compact when a window was just minimized — minimized windows are
+    # temporary (will be restored later), so compacting is premature and would
+    # yank the user to a different workspace. The alt+m keybinding handles its
+    # own compact via minimize-window.sh.
+    if [ "$JUST_MINIMIZED" = "0" ]; then
+      "$MDIR/compact-workspaces.sh"
+    fi
   fi
   mv "$PREV_FILE.new" "$PREV_FILE"
 

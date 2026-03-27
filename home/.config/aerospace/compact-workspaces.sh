@@ -103,5 +103,6 @@ for mfile in "$MDIR"/.minimized-*; do
   fi
 done
 
+touch /tmp/.aero-intent
 $AEROSPACE workspace "$NEW_FOCUSED"
 $SKETCHYBAR --trigger aerospace_workspace_change FOCUSED_WORKSPACE="$NEW_FOCUSED"

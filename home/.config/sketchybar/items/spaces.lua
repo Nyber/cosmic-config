@@ -227,7 +227,7 @@ for i = 1, NUM_SPACES do
   end)
 
   space:subscribe("mouse.clicked", function(env)
-    sbar.exec("/opt/homebrew/bin/aerospace workspace " .. i)
+    sbar.exec("touch /tmp/.aero-intent && /opt/homebrew/bin/aerospace workspace " .. i)
   end)
 end
 
