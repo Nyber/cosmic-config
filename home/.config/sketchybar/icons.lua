@@ -32,4 +32,8 @@ return {
     forward = "",
     play_pause = "",
   },
+  notification = {
+    bell = "",
+    bell_badge = "",
+  },
 }

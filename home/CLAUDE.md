@@ -52,12 +52,12 @@ Entry: `sketchybarrc` → `helpers/init.lua` (sets up SbarLua, runs `make` to au
 - `front_app.lua` — Current app name (active display only). Click triggers `swap_menus_and_spaces` to toggle between menus and workspace indicators.
 - `calendar.lua` — Date/time display, click opens Calendar.app.
 - `media.lua` — Album art + truncated artist/title for Spotify/Music. Animated expand/collapse on hover. `nowplaying-cli` used for popup playback controls.
-- `widgets/` — battery, volume (with audio device picker via `SwitchAudioSource`), screenshot, VPN toggle, wifi
+- `widgets/` — battery, volume (with audio device picker via `SwitchAudioSource`), notifications (bell icon with popup list, reads macOS Notification Center DB + custom push events), screenshot, VPN toggle, wifi
 
 **Cross-cutting event:** `swap_menus_and_spaces` — toggled by clicking front_app, swaps visibility of menus vs. workspace indicators. Handled in `front_app.lua`, `menus.lua`, and `spaces.lua`.
 
 **Helpers** (`helpers/`):
-- C helpers compiled via makefiles: `badges/`, `menus/`, `volume/` — each in its own subdir with a makefile, binaries output to `<subdir>/bin/`
+- C/Swift helpers compiled via makefiles: `badges/`, `menus/`, `notifications/`, `volume/` — each in its own subdir with a makefile, binaries output to `<subdir>/bin/`
 - `menus/` uses private `SkyLight` framework + Carbon for Accessibility API — temporarily shows native menu bar via `SLSSetMenuBarInsetAndAlpha` when selecting extra menu bar items
 - `app_icons.lua` — 340+ app-to-icon mappings (sketchybar-app-font glyphs)
 - `badge_data.lua` — Shared badge state for `spaces.lua` (minimize daemon triggers rechecks via `sketchybar --trigger badge_check`)
