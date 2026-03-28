@@ -48,6 +48,8 @@ dotfiles/
 │       │   ├── minimize-daemon.sh      # Restore minimized windows to original workspace
 │       │   ├── minimize-window.sh      # Minimize + empty workspace auto-switch
 │       │   ├── move-window.sh          # Move window + follow if empty
+│       │   ├── compact-workspaces.sh   # Fill gaps in workspace numbering
+│       │   ├── snap-window.sh          # Snap/tile windows to screen halves
 │       │   └── workspace-changed.sh    # SketchyBar update + hide Zoom overlay
 │       ├── borders/bordersrc           # JankyBorders config
 │       ├── eza/theme.yml               # eza color theme
@@ -74,10 +76,11 @@ dotfiles/
 │       │   │       ├── init.lua        # Loads all widget modules
 │       │   │       ├── battery.lua
 │       │   │       ├── volume.lua      # Volume + audio device picker
+│       │   │       ├── notifications.lua # Bell icon + popup (macOS NC + custom push)
 │       │   │       ├── screenshot.lua
 │       │   │       ├── vpn.lua         # F5 BIG-IP toggle
 │       │   │       └── wifi.lua        # WiFi status
-│       │   └── helpers/                # C/ObjC helpers + SbarLua loader
+│       │   └── helpers/                # C/ObjC/Swift helpers + SbarLua loader
 │       │       ├── init.lua            # Loads SbarLua + builds C helpers
 │       │       ├── makefile            # Builds all helper subdirectories
 │       │       ├── app_icons.lua       # App → icon mapping
@@ -90,6 +93,9 @@ dotfiles/
 │       │       ├── menus/              # Native menu bar access (ObjC)
 │       │       │   ├── makefile
 │       │       │   └── menus.m
+│       │       ├── notifications/      # macOS Notification Center reader (Swift)
+│       │       │   ├── makefile
+│       │       │   └── notifications.swift
 │       │       └── volume/             # Volume control helper (C)
 │       │           ├── makefile
 │       │           └── volume.c

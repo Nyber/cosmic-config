@@ -366,12 +366,13 @@ notif_icon:subscribe("notification_push", function(env)
     info = json.decode(info)
   end
   if info then
+    local ts = os.time()
     table.insert(custom_notifications, {
       app = info.app or "Custom",
       title = info.title or "",
       body = info.body or "",
       subtitle = info.subtitle or "",
-      unix_timestamp = os.time(),
+      unix_timestamp = ts,
     })
     while #custom_notifications > 20 do
       table.remove(custom_notifications, 1)
@@ -379,11 +380,15 @@ notif_icon:subscribe("notification_push", function(env)
     update_icon()
     if popup_open then update_popup() end
     -- Auto-dismiss after 5 minutes
+    local dismiss_ts = tostring(ts)
     sbar.delay(300, function()
-      if #custom_notifications > 0 then
-        table.remove(custom_notifications, 1)
-        update_icon()
-        if popup_open then update_popup() end
+      for idx, n in ipairs(custom_notifications) do
+        if tostring(n.unix_timestamp) == dismiss_ts then
+          table.remove(custom_notifications, idx)
+          update_icon()
+          if popup_open then update_popup() end
+          break
+        end
       end
     end)
   end
