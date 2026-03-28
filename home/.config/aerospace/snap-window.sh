@@ -1,8 +1,8 @@
 #!/bin/bash
 # snap-window.sh — Snap focused window to halves/quarters with double-tap cycling.
-# Usage: snap-window.sh <left|right|up|down>
+# Usage: snap-window.sh <left|right|up|down|full>
 #
-# Cycling (repeat same direction within 2s):
+# Cycling (repeat same direction within 3s):
 #   left:  left half → top-left quarter → bottom-left quarter → left half …
 #   right: right half → top-right quarter → bottom-right quarter → right half …
 #   up:    top half → top-left quarter → top-right quarter → top half …
@@ -15,7 +15,7 @@ STATE_FILE="/tmp/aerospace-snap-state"
 CYCLE_TIMEOUT=3
 
 # --- Screen dimensions (usable area accounting for SketchyBar + gaps) ---
-# outer gaps: top=10, left=2, right=2, bottom=2  (matches .aerospace.toml)
+# outer gaps: top=44, left=2, right=2, bottom=2  (matches .aerospace.toml)
 # inner gap between quarter splits: 5px (matches inner.horizontal/vertical)
 GAP_TOP=44
 GAP_LEFT=2
@@ -84,7 +84,50 @@ case "${DIRECTION}:${STEP}" in
     down:0)  X=$X_MIN;                        Y=$((Y_MIN + HALF_H + GAP_INNER)); W=$USABLE_W; H=$HALF_H ;;
     down:1)  X=$X_MIN;                        Y=$((Y_MIN + HALF_H + GAP_INNER)); W=$HALF_W;  H=$HALF_H ;;
     down:2)  X=$((X_MIN + HALF_W + GAP_INNER)); Y=$((Y_MIN + HALF_H + GAP_INNER)); W=$HALF_W;  H=$HALF_H ;;
+
+    # Full: toggle — fill screen or restore previous position.
+    # Save file acts as toggle state; non-full snaps clear it (below).
+    full:*)
+        FULL_SAVE="/tmp/aerospace-snap-full-save"
+        if [[ -f "$FULL_SAVE" ]]; then
+            read -r X Y W H < "$FULL_SAVE" && [[ -n "$H" ]] \
+                || { X=$X_MIN; Y=$Y_MIN; W=$USABLE_W; H=$USABLE_H; }
+            rm -f "$FULL_SAVE"
+        else
+            # Save current geometry, then go full — single osascript reads + writes
+            osascript -e "
+                tell application \"System Events\"
+                    set frontApp to first application process whose frontmost is true
+                    set wins to every window of frontApp
+                    if (count of wins) = 0 then return
+
+                    set bestWin to item 1 of wins
+                    set bestArea to 0
+                    repeat with w in wins
+                        try
+                            set {w_, h_} to size of w
+                            set a to w_ * h_
+                            if a > bestArea then
+                                set bestArea to a
+                                set bestWin to w
+                            end if
+                        end try
+                    end repeat
+
+                    set {cx, cy} to position of bestWin
+                    set {cw, ch} to size of bestWin
+                    do shell script \"echo \" & cx & \" \" & cy & \" \" & cw & \" \" & ch & \" > $FULL_SAVE\"
+                    set position of bestWin to {${X_MIN}, ${Y_MIN}}
+                    set size of bestWin to {${USABLE_W}, ${USABLE_H}}
+                end tell
+            "
+            exit 0
+        fi
+        ;;
 esac
+
+# Non-full snap clears full-toggle state
+[[ "$DIRECTION" != "full" ]] && rm -f /tmp/aerospace-snap-full-save
 
 # --- Move and resize window via osascript ---
 # Find the largest window of the front app (avoids targeting Zoom's floating

@@ -40,6 +40,7 @@ exec-on-workspace-change = ['/bin/bash', '-c', '$HOME/.config/aerospace/workspac
     alt-shift-down  = 'exec-and-forget $HOME/.config/aerospace/snap-window.sh down'
     alt-shift-up    = 'exec-and-forget $HOME/.config/aerospace/snap-window.sh up'
     alt-shift-right = 'exec-and-forget $HOME/.config/aerospace/snap-window.sh right'
+    alt-shift-f     = 'exec-and-forget $HOME/.config/aerospace/snap-window.sh full'
 
     # --- Focus (navigate): opt + arrows ---
     alt-left  = 'focus left'
@@ -50,7 +51,6 @@ exec-on-workspace-change = ['/bin/bash', '-c', '$HOME/.config/aerospace/workspac
     # --- Layout ---
     alt-slash = 'layout tiles horizontal vertical'
     alt-comma = 'layout accordion horizontal vertical'
-    alt-f     = 'fullscreen'
     alt-m     = 'exec-and-forget $HOME/.config/aerospace/minimize-window.sh'
     alt-q     = ['close --quit-if-last-window', 'exec-and-forget $HOME/.config/aerospace/close-window.sh']
 
