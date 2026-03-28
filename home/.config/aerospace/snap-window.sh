@@ -86,15 +86,29 @@ case "${DIRECTION}:${STEP}" in
     down:2)  X=$((X_MIN + HALF_W + GAP_INNER)); Y=$((Y_MIN + HALF_H + GAP_INNER)); W=$HALF_W;  H=$HALF_H ;;
 esac
 
-# --- Ensure window is floating (tiled windows override osascript positioning) ---
-/opt/homebrew/bin/aerospace layout floating 2>/dev/null || true
-
 # --- Move and resize window via osascript ---
+# Find the largest window of the front app (avoids targeting Zoom's floating
+# toolbar/overlay instead of the actual meeting window).
 osascript -e "
     tell application \"System Events\"
         set frontApp to first application process whose frontmost is true
-        set frontWindow to first window of frontApp
-        set position of frontWindow to {${X}, ${Y}}
-        set size of frontWindow to {${W}, ${H}}
+        set wins to every window of frontApp
+        if (count of wins) = 0 then return
+
+        set bestWin to item 1 of wins
+        set bestArea to 0
+        repeat with w in wins
+            try
+                set {w_, h_} to size of w
+                set a to w_ * h_
+                if a > bestArea then
+                    set bestArea to a
+                    set bestWin to w
+                end if
+            end try
+        end repeat
+
+        set position of bestWin to {${X}, ${Y}}
+        set size of bestWin to {${W}, ${H}}
     end tell
 "
