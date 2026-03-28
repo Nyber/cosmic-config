@@ -38,6 +38,8 @@ fi
 # 3. brew bundle
 # ---------------------------------------------------------------------------
 info "Running brew bundle"
+brew tap nikitabobko/tap 2>/dev/null || true
+brew tap FelixKratz/formulae 2>/dev/null || true
 brew bundle --file="$DOTFILES/Brewfile"
 ok "Packages installed"
 
